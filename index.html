@@ -195,7 +195,6 @@
             transition: background 0.3s;
         }
 
-        /* Primary action: Copy */
         .button.primary {
             background: #2e7d32;
         }
@@ -239,6 +238,12 @@
             color: #333;
             margin-bottom: 15px;
         }
+
+        .instructions-box h4 {
+            color: #333;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
         
         .instructions-box ol {
             margin-left: 20px;
@@ -248,6 +253,10 @@
             margin: 8px 0;
             color: #333;
         }
+
+        .instructions-box ul {
+            margin-left: 20px;
+        }
     </style>
 </head>
 <body>
@@ -256,25 +265,91 @@
         <p class="subtitle">Convert Team Manager swim times PDFs to Google Sheets format</p>
         
         <div class="instructions-box">
-            <h3>How to Get Your PDF from Team Manager</h3>
+            <h3>Step-by-Step Instructions</h3>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 5px; margin-bottom: 20px;">
+                <strong style="color: #856404;">⚠️ Read all instructions before starting</strong>
+            </div>
+            
+            <h4>Part 1: Generate the PDF in Team Manager</h4>
             <ol>
-                <li>Go to: <strong>Reports → Performance Reports → Top Times</strong>
+                <li style="margin-bottom: 15px;">
+                    Open Team Manager on your computer and go to: <strong>Reports → Performance Reports → Top Times</strong>
+                </li>
+                <li style="margin-bottom: 15px;">
+                    You will see a settings window. <strong>Match all settings as shown in this screenshot:</strong>
                     <div style="margin: 12px 0 0 0;">
-                        <div style="font-weight: bold; color: #555; margin-bottom: 8px;">Settings required for the PDF:</div>
-                        <img src="https://i.imgur.com/25PNf2e.png" alt="Team Manager PDF Settings" style="width: 100%; max-width: 600px; border: 1px solid #ddd; margin: 0; border-radius: 5px;">
+                        <img
+                            src="https://i.imgur.com/25PNf2e.png"
+                            alt="Team Manager PDF Settings"
+                            style="width: 100%; max-width: 600px; border: 2px solid #d32f2f; margin: 0; border-radius: 5px;">
                     </div>
                 </li>
-                <li>Set <strong>Team</strong>, <strong>Gen: All</strong>, <strong>Use Times Since</strong> date</li>
-                <li>Set <strong>Sort by: Name</strong></li>
-                <li>Set <strong>Course Options: YY (Convert to Y, Show Y)</strong></li>
-                <li>Set <strong>Event Filters: Individual</strong></li>
-                <li>Set <strong>Top How Many: 1 (All Times)</strong></li>
-                <li>Set <strong>Layout: 1 Column</strong></li>
-                <li>Click <strong>"Create Report"</strong> and download the PDF</li>
-                <li>Upload the PDF below</li>
-                <li>Copy the data and paste into cell <strong>A5</strong> for your school</li>
+                <li style="margin-bottom: 15px;">
+                    <strong>Configure these exact settings:</strong>
+                    <ul style="margin-top: 8px; margin-left: 18px; line-height: 1.8;">
+                        <li><strong>Team:</strong> Select your team from the dropdown</li>
+                        <li><strong>Gen:</strong> All (not individual gender)</li>
+                        <li><strong>Use Times Since:</strong> Enter your start date (like 10/30/25) and <strong>CHECK the box</strong> next to "Use Since Date"</li>
+                        <li><strong>Sort by:</strong> Name - this is critical!</li>
+                        <li><strong>Prelim / Finals Filter:</strong> All</li>
+                        <li><strong>Splits:</strong> None</li>
+                        <li><strong>Course Options:</strong> Select "YY (Convert to Y, Show Y)" - the YY option is required</li>
+                        <li><strong>Event Filters:</strong> Individual (NOT Relay)</li>
+                        <li><strong>Top How Many?:</strong> 1 with "All Times" selected</li>
+                        <li><strong>Layout:</strong> 1 Column (NOT 2 or 3 columns)</li>
+                    </ul>
+                </li>
+                <li style="margin-bottom: 15px;">
+                    Click the <strong>"Create Report"</strong> button at the bottom
+                </li>
+                <li style="margin-bottom: 15px;">
+                    A PDF will be generated. <strong>Save the PDF file</strong> to your computer (remember where you save it!)
+                </li>
+            </ol>
+            
+            <h4>Part 2: Upload and Convert the PDF</h4>
+            <ol start="6">
+                <li style="margin-bottom: 15px;">
+                    <strong>Scroll down</strong> on this page until you see a gray box that says "Click to upload or drag & drop your PDF here"
+                </li>
+                <li style="margin-bottom: 15px;">
+                    Click on that gray box and select the PDF file you just saved from Team Manager
+                </li>
+                <li style="margin-bottom: 15px;">
+                    Wait a few seconds while the PDF is processed. You will see a message saying "Processing PDF..."
+                </li>
+                <li style="margin-bottom: 15px;">
+                    When it's done, you'll see "Found X swimmers" in green
+                </li>
+            </ol>
+            
+            <h4>Part 3: Copy Data to Google Sheets</h4>
+            <ol start="10">
+                <li style="margin-bottom: 15px;">
+                    <strong>Scroll down more</strong> until you see a section titled <strong>"Data Ready to Copy"</strong>
+                </li>
+                <li style="margin-bottom: 15px;">
+                    Click the green <strong>"Copy Data"</strong> button (you should see "Copied!" appear briefly)
+                </li>
+                <li style="margin-bottom: 15px;">
+                    Open your Google Sheets document in a new tab or window
+                </li>
+                <li style="margin-bottom: 15px;">
+                    Find your school's sheet tab at the bottom of Google Sheets and click on it
+                </li>
+                <li style="margin-bottom: 15px;">
+                    Click on cell <strong>A5</strong> (this is column A, row 5 - the first empty row under the headers)
+                </li>
+                <li style="margin-bottom: 15px;">
+                    Press <strong>Ctrl+V</strong> on your keyboard (or <strong>Cmd+V</strong> if you're on a Mac)
+                </li>
+                <li style="margin-bottom: 15px;">
+                    The data will fill in automatically across all columns. <strong>Done!</strong>
+                </li>
             </ol>
         </div>
+        
         <div class="upload-area" id="uploadArea">
             <div class="upload-icon">📄</div>
             <div class="upload-text">Click to upload or drag & drop your PDF here</div>
@@ -293,7 +368,7 @@
                     2. Open your school Google Sheet<br>
                     3. Click on cell <strong>A5</strong> in your school sheet<br>
                     4. Press Ctrl+V (or Cmd+V on Mac) to paste<br>
-                    <span style="color: #c62828;">NOTE: Header row is NOT included — paste into row 5 or below</span>
+                    <span style="color: #c62828;">NOTE: Header row is NOT included – paste into row 5 or below</span>
                 </div>
                 <button class="button primary" onclick="copyToClipboard()">Copy Data</button>
                 <button class="button secondary" onclick="downloadCSV()">Download CSV</button>
@@ -390,7 +465,6 @@
                     const page = await pdf.getPage(i);
                     const textContent = await page.getTextContent();
                     
-                    // Group items by Y position to recreate lines
                     const lineMap = new Map();
                     textContent.items.forEach(item => {
                         const y = Math.round(item.transform[5]);
@@ -400,7 +474,6 @@
                         lineMap.get(y).push(item);
                     });
                     
-                    // Sort lines by Y position and reconstruct text
                     const sortedLines = Array.from(lineMap.entries())
                         .sort((a, b) => b[0] - a[0])
                         .map(([y, items]) => {
@@ -413,7 +486,7 @@
                     allLines.push(...sortedLines);
                 }
                 
-                console.log('Extracted lines:', allLines.slice(0, 20)); // Debug
+                console.log('Extracted lines:', allLines.slice(0, 20));
                 
                 const swimmers = extractSwimmerData(allLines);
                 
@@ -441,7 +514,6 @@
                 line = line.trim();
                 if (!line) continue;
                 
-                // More flexible swimmer pattern
                 const swimmerMatch = line.match(/^([A-Za-z][A-Za-z\s\.\-']+?)\s+\(\s*(\d+)\s*\)\s+([BG])(?:\s+\(\s*(?:Yr:|Year:)?\s*[A-Z0-9]+\s*\))?\s*$/i);
                 
                 if (swimmerMatch) {
@@ -457,7 +529,6 @@
                 }
                 
                 if (currentSwimmer) {
-                    // More flexible time pattern with optional spaces
                     const timeMatch = line.match(/^x?\s*(\d{1,2}:\d{2}\.\d{2}|\d{1,3}\.\d{2})\s+(?:Y|SCY)\s+(?:\d+\s+)?(?:F|Finals?|Prelims?|P)\s+(\d+)\s+([A-Za-z\s]+)/i);
                     
                     if (timeMatch) {
