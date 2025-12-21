@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swim Times PDF to CSV Converter</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1em;
+        }
+        
+        .upload-area {
+            border: 2px dashed #999;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            background: #f0f0f0;
+            border-color: #666;
+        }
+        
+        .upload-area.dragover {
+            background: #e8e8e8;
+            border-color: #333;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .upload-text {
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .upload-subtext {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+            display: block;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+            display: block;
+        }
+        
+        .status.processing {
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+            display: block;
+        }
+        
+        .results {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.9em;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .preview-table th {
+            background: #555;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+        }
+        
+        .preview-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .preview-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .copy-section {
+            background: #fafafa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+        
+        .copy-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .instructions {
+            background: #fff9e6;
+            border: 1px solid #ffecb3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .instructions strong {
+            display: block;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            font-family: Arial, sans-serif;
+            font-size: 10pt;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        
+        .button {
+            background: #555;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: normal;
+            cursor: pointer;
+            margin: 10px 8px 10px 0;
+            transition: background 0.3s;
+        }
+
+        /* Primary action: Copy */
+        .button.primary {
+            background: #2e7d32;
+        }
+
+        .button.primary:hover {
+            background: #1b5e20;
+        }
+        
+        .button:not(.primary):hover {
+            background: #333;
+        }
+        
+        .button:active {
+            transform: scale(0.98);
+        }
+        
+        .button.secondary {
+            background: #777;
+        }
+        
+        .button.secondary:hover {
+            background: #555;
+        }
+        
+        .copy-message {
+            color: #2e7d32;
+            font-weight: normal;
+            margin-left: 10px;
+            display: none;
+        }
+        
+        .instructions-box {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        
+        .instructions-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .instructions-box ol {
+            margin-left: 20px;
+        }
+        
+        .instructions-box li {
+            margin: 8px 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Swim Times PDF Converter</h1>
+        <p class="subtitle">Convert Team Manager swim times PDFs to Google Sheets format</p>
+        
+        <div class="instructions-box">
+            <h3>How to Get Your PDF from Team Manager</h3>
+            <ol>
+                <li>Go to: <strong>Reports → Performance Reports → Top Times</strong>
+                    <div style="margin: 12px 0 0 0;">
+                        <div style="font-weight: bold; color: #555; margin-bottom: 8px;">Settings required for the PDF:</div>
+                        <img src="https://i.imgur.com/25PNf2e.png" alt="Team Manager PDF Settings" style="width: 100%; max-width: 600px; border: 1px solid #ddd; margin: 0; border-radius: 5px;">
+                    </div>
+                </li>
+                <li>Set <strong>Team</strong>, <strong>Gen: All</strong>, <strong>Use Times Since</strong> date</li>
+                <li>Set <strong>Sort by: Name</strong></li>
+                <li>Set <strong>Course Options: YY (Convert to Y, Show Y)</strong></li>
+                <li>Set <strong>Event Filters: Individual</strong></li>
+                <li>Set <strong>Top How Many: 1 (All Times)</strong></li>
+                <li>Set <strong>Layout: 1 Column</strong></li>
+                <li>Click <strong>"Create Report"</strong> and download the PDF</li>
+                <li>Upload the PDF below</li>
+                <li>Copy the data and paste into cell <strong>A5</strong> for your school</li>
+            </ol>
+        </div>
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📄</div>
+            <div class="upload-text">Click to upload or drag & drop your PDF here</div>
+            <div class="upload-subtext">Supports Team Manager swim times PDF reports</div>
+            <input type="file" id="fileInput" accept=".pdf">
+        </div>
+        
+        <div class="status" id="status"></div>
+        
+        <div class="results" id="results">
+            <div class="copy-section">
+                <h3>Data Ready to Copy</h3>
+                <div class="instructions">
+                    <strong>Instructions:</strong>
+                    1. Click <strong>Copy Data</strong><br>
+                    2. Open your school Google Sheet<br>
+                    3. Click on cell <strong>A5</strong> in your school sheet<br>
+                    4. Press Ctrl+V (or Cmd+V on Mac) to paste<br>
+                    <span style="color: #c62828;">NOTE: Header row is NOT included — paste into row 5 or below</span>
+                </div>
+                <button class="button primary" onclick="copyToClipboard()">Copy Data</button>
+                <button class="button secondary" onclick="downloadCSV()">Download CSV</button>
+                <span class="copy-message" id="copyMessage">Copied! Paste at cell A5</span>
+                <textarea id="dataOutput" readonly></textarea>
+            </div>
+
+            <h2 style="margin-top: 30px;">Preview (optional)</h2>
+            <div id="previewContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        let processedData = [];
+        let tsvData = '';
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const results = document.getElementById('results');
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type === 'application/pdf') {
+                handleFile(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+        
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = 'status ' + type;
+        }
+        
+        function formatSwimTime(timeStr) {
+            timeStr = timeStr.trim();
+            if (timeStr.includes(':')) {
+                const parts = timeStr.split(':');
+                if (parts.length === 2) {
+                    let minutes = parts[0];
+                    let seconds = parts[1];
+                    if (seconds.includes('.')) {
+                        const secParts = seconds.split('.');
+                        seconds = secParts[0].padStart(2, '0') + '.' + secParts[1].padEnd(2, '0');
+                    }
+                    return `${minutes}:${seconds}`;
+                }
+            } else if (timeStr.includes('.')) {
+                const secParts = timeStr.split('.');
+                return secParts[0].padStart(2, '0') + '.' + secParts[1].padEnd(2, '0');
+            }
+            return timeStr.padStart(2, '0');
+        }
+        
+        function timeToSeconds(t) {
+            if (t === 'NT') return Infinity;
+            if (t.includes(':')) {
+                const parts = t.split(':');
+                return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+            }
+            return parseFloat(t);
+        }
+        
+        async function handleFile(file) {
+            showStatus('Processing PDF...', 'processing');
+            results.classList.remove('show');
+            
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+                
+                let allLines = [];
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    
+                    // Group items by Y position to recreate lines
+                    const lineMap = new Map();
+                    textContent.items.forEach(item => {
+                        const y = Math.round(item.transform[5]);
+                        if (!lineMap.has(y)) {
+                            lineMap.set(y, []);
+                        }
+                        lineMap.get(y).push(item);
+                    });
+                    
+                    // Sort lines by Y position and reconstruct text
+                    const sortedLines = Array.from(lineMap.entries())
+                        .sort((a, b) => b[0] - a[0])
+                        .map(([y, items]) => {
+                            return items
+                                .sort((a, b) => a.transform[4] - b.transform[4])
+                                .map(item => item.str)
+                                .join(' ');
+                        });
+                    
+                    allLines.push(...sortedLines);
+                }
+                
+                console.log('Extracted lines:', allLines.slice(0, 20)); // Debug
+                
+                const swimmers = extractSwimmerData(allLines);
+                
+                if (swimmers.length === 0) {
+                    showStatus('No swimmer data found. Please check PDF format.', 'error');
+                    console.log('Full text sample:', allLines.slice(0, 50));
+                    return;
+                }
+                
+                processedData = swimmers;
+                displayResults(swimmers);
+                showStatus('Found ' + swimmers.length + ' swimmers', 'success');
+                
+            } catch (error) {
+                showStatus('Error processing PDF: ' + error.message, 'error');
+                console.error(error);
+            }
+        }
+        
+        function extractSwimmerData(lines) {
+            const swimmers = [];
+            let currentSwimmer = null;
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                // More flexible swimmer pattern
+                const swimmerMatch = line.match(/^([A-Za-z][A-Za-z\s\.\-']+?)\s+\(\s*(\d+)\s*\)\s+([BG])(?:\s+\(\s*(?:Yr:|Year:)?\s*[A-Z0-9]+\s*\))?\s*$/i);
+                
+                if (swimmerMatch) {
+                    if (currentSwimmer) swimmers.push(currentSwimmer);
+                    
+                    currentSwimmer = {
+                        'Swimmer Name': swimmerMatch[1].trim(),
+                        'Gender ( M or F)': swimmerMatch[3].toUpperCase() === 'B' ? 'M' : 'F',
+                        '200 FREE': 'NT', '200 IM': 'NT', '50 FREE': 'NT', '100 FLY': 'NT',
+                        '100 FREE': 'NT', '500 FREE': 'NT', '100 BACK': 'NT', '100 BREAST': 'NT'
+                    };
+                    continue;
+                }
+                
+                if (currentSwimmer) {
+                    // More flexible time pattern with optional spaces
+                    const timeMatch = line.match(/^x?\s*(\d{1,2}:\d{2}\.\d{2}|\d{1,3}\.\d{2})\s+(?:Y|SCY)\s+(?:\d+\s+)?(?:F|Finals?|Prelims?|P)\s+(\d+)\s+([A-Za-z\s]+)/i);
+                    
+                    if (timeMatch) {
+                        const rawTime = timeMatch[1];
+                        const distance = timeMatch[2];
+                        const eventName = timeMatch[3].trim().toLowerCase();
+                        const time = formatSwimTime(rawTime);
+                        
+                        let eventKey = null;
+                        
+                        if (eventName.includes('free') || eventName.includes('freestyle')) {
+                            const distMap = {'50': '50 FREE', '100': '100 FREE', '200': '200 FREE', '500': '500 FREE'};
+                            eventKey = distMap[distance];
+                        } else if (eventName.includes('back') && distance === '100') {
+                            eventKey = '100 BACK';
+                        } else if (eventName.includes('breast') && distance === '100') {
+                            eventKey = '100 BREAST';
+                        } else if ((eventName.includes('fly') || eventName.includes('butterfly')) && distance === '100') {
+                            eventKey = '100 FLY';
+                        } else if ((eventName.includes('i.m') || eventName.includes('im') || eventName.includes('medley')) && distance === '200') {
+                            eventKey = '200 IM';
+                        }
+                        
+                        if (eventKey) {
+                            try {
+                                if (currentSwimmer[eventKey] === 'NT' || timeToSeconds(time) < timeToSeconds(currentSwimmer[eventKey])) {
+                                    currentSwimmer[eventKey] = time;
+                                }
+                            } catch {
+                                if (currentSwimmer[eventKey] === 'NT') {
+                                    currentSwimmer[eventKey] = time;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (currentSwimmer) swimmers.push(currentSwimmer);
+            return swimmers;
+        }
+        
+        function displayResults(swimmers) {
+            const columns = ['Swimmer Name', 'Gender ( M or F)', '200 FREE', '200 IM', '50 FREE', '100 FLY', '100 FREE', '500 FREE', '100 BACK', '100 BREAST'];
+            
+            let html = '<table class="preview-table"><thead><tr>';
+            columns.forEach(col => html += `<th>${col}</th>`);
+            html += '</tr></thead><tbody>';
+            
+            swimmers.forEach(swimmer => {
+                html += '<tr>';
+                columns.forEach(col => html += `<td>${swimmer[col]}</td>`);
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('previewContainer').innerHTML = html;
+            
+            tsvData = swimmers.map(swimmer => 
+                columns.map(col => swimmer[col]).join('\t')
+            ).join('\n');
+            
+            document.getElementById('dataOutput').value = tsvData;
+            results.classList.add('show');
+        }
+        
+        function copyToClipboard() {
+            const textarea = document.getElementById('dataOutput');
+            textarea.select();
+            document.execCommand('copy');
+            
+            const message = document.getElementById('copyMessage');
+            message.style.display = 'inline';
+            setTimeout(() => message.style.display = 'none', 5000);
+        }
+        
+        function downloadCSV() {
+            const blob = new Blob([tsvData], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'swim_times.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
