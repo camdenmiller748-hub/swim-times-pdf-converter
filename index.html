@@ -507,8 +507,9 @@
         }
         
         function extractSwimmerData(lines) {
-            const swimmers = [];
+            const swimmerMap = new Map();
             let currentSwimmer = null;
+            let currentSwimmerName = null;
             
             for (let line of lines) {
                 line = line.trim();
@@ -517,14 +518,20 @@
                 const swimmerMatch = line.match(/^([A-Za-z][A-Za-z\s\.\-']+?)\s+\(\s*(\d+)\s*\)\s+([BG])(?:\s+\(\s*(?:Yr:|Year:)?\s*[A-Z0-9]+\s*\))?\s*$/i);
                 
                 if (swimmerMatch) {
-                    if (currentSwimmer) swimmers.push(currentSwimmer);
+                    const name = swimmerMatch[1].trim();
+                    currentSwimmerName = name;
                     
-                    currentSwimmer = {
-                        'Swimmer Name': swimmerMatch[1].trim(),
-                        'Gender ( M or F)': swimmerMatch[3].toUpperCase() === 'B' ? 'M' : 'F',
-                        '200 FREE': 'NT', '200 IM': 'NT', '50 FREE': 'NT', '100 FLY': 'NT',
-                        '100 FREE': 'NT', '500 FREE': 'NT', '100 BACK': 'NT', '100 BREAST': 'NT'
-                    };
+                    if (swimmerMap.has(name)) {
+                        currentSwimmer = swimmerMap.get(name);
+                    } else {
+                        currentSwimmer = {
+                            'Swimmer Name': name,
+                            'Gender ( M or F)': swimmerMatch[3].toUpperCase() === 'B' ? 'M' : 'F',
+                            '200 FREE': 'NT', '200 IM': 'NT', '50 FREE': 'NT', '100 FLY': 'NT',
+                            '100 FREE': 'NT', '500 FREE': 'NT', '100 BACK': 'NT', '100 BREAST': 'NT'
+                        };
+                        swimmerMap.set(name, currentSwimmer);
+                    }
                     continue;
                 }
                 
@@ -567,8 +574,7 @@
                 }
             }
             
-            if (currentSwimmer) swimmers.push(currentSwimmer);
-            return swimmers;
+            return Array.from(swimmerMap.values());
         }
         
         function displayResults(swimmers) {
