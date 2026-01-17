@@ -1,1147 +1,1033 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swim Times PDF to CSV Converter</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 8px;
-            padding: 40px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2em;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1em;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Swim Times PDF Converter</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-        .season-date-box {
-            background: linear-gradient(to bottom, #f0f9ff, #ffffff);
-            border: 1px solid #bfdbfe;
-            padding: 28px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 1px 3px rgba(59, 130, 246, 0.08);
-        }
+  <style>
+    :root{
+      --bg:#f3f6fb;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --border:#e5eaf3;
+      --shadow:0 10px 30px rgba(2,8,23,.08);
+      --blue:#2563eb;
+      --blue-100:#eaf2ff;
+      --blue-200:#cfe1ff;
+      --blue-300:#b7d0ff;
+      --radius:18px;
+    }
 
-        .season-date-box h3 {
-            color: #1e40af;
-            margin-bottom: 6px;
-            font-size: 1.25em;
-            font-weight: 600;
-        }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.35;
+      padding:32px 18px;
+    }
 
-        .season-subtitle {
-            color: #64748b;
-            font-size: 0.9em;
-            margin-bottom: 20px;
-            font-weight: 400;
-        }
+    .container{
+      max-width: 880px;
+      margin:0 auto;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding:38px 44px 46px;
+    }
 
-        .date-input-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
+    h1{
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    .subtitle{
+      color:var(--muted);
+      font-size: 16px;
+      margin-bottom: 28px;
+    }
 
-        .date-input-group label {
-            font-weight: 500;
-            color: #334155;
-            font-size: 0.95em;
-        }
+    /* Step layout */
+    .step{
+      display:flex;
+      gap:18px;
+      padding: 18px 0;
+    }
+    .step + .step{ border-top: 1px solid rgba(229,234,243,.0); } /* keep airy like screenshot */
 
-        .date-picker-wrapper {
-            position: relative;
-            display: inline-flex;
-            gap: 8px;
-            align-items: center;
-        }
+    .step-num{
+      flex:0 0 auto;
+      width:40px;height:40px;
+      border-radius:999px;
+      background: var(--blue);
+      color:#fff;
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-top: 6px;
+      box-shadow: 0 8px 18px rgba(37,99,235,.20);
+    }
 
-        .date-input-field {
-            padding: 10px 14px;
-            font-size: 0.95em;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            background: white;
-            color: #1e293b;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            width: 140px;
-            font-family: inherit;
-        }
+    .step-body{ flex:1 1 auto; }
+    .step-title{
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .step-desc{
+      color:var(--muted);
+      font-size: 15px;
+      margin-bottom: 14px;
+    }
 
-        .date-input-field:hover {
-            border-color: #94a3b8;
-            background: #f8fafc;
-        }
+    /* Step 1 date row (match screenshot: label + input + calendar button) */
+    .date-row{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      padding: 6px 0 2px;
+    }
+    .date-row label{
+      font-weight: 600;
+      color: #334155;
+      min-width: 160px;
+    }
+    .date-picker-wrapper{
+      position:relative;
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+    }
+    .date-input-field{
+      width: 150px;
+      padding: 12px 14px;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      font-weight:600;
+      color:#0f172a;
+      background:#fff;
+      outline:none;
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    .date-input-field:focus{
+      border-color: var(--blue-300);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.12);
+    }
+    .calendar-button{
+      width:44px;height:44px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:#fff;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      color: var(--blue);
+      transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+    }
+    .calendar-button:hover{
+      background: var(--blue-100);
+      border-color: var(--blue-200);
+    }
+    .calendar-button.active{
+      border-color: var(--blue-200);
+      box-shadow: 0 0 0 4px rgba(37,99,235,.10);
+      background: var(--blue-100);
+    }
 
-        .date-input-field:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-            background: white;
-        }
+    /* Calendar popup (keep your logic, restyle to match) */
+    .calendar-popup{
+      position:absolute;
+      top: calc(100% + 10px);
+      left: 0;
+      width: 320px;
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow: 0 18px 50px rgba(2,8,23,.20);
+      padding:16px;
+      z-index:1000;
+      display:none;
+    }
+    .calendar-popup.show{display:block;}
+    .calendar-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom: 10px;
+    }
+    .calendar-header button{
+      border:none;
+      background: #f1f5ff;
+      color:#1e3a8a;
+      width:34px;height:34px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:18px;
+      transition: background .15s ease;
+    }
+    .calendar-header button:hover{ background:#e8efff; }
+    .calendar-month-year{ font-weight:800;color:#0f172a; }
+    .calendar-weekdays, .calendar-days{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:6px;
+    }
+    .calendar-weekday{
+      text-align:center;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:700;
+      padding:6px 0;
+    }
+    .calendar-day{
+      height:34px;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-weight:600;
+      border:1px solid transparent;
+      transition: background .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .calendar-day:hover:not(.other-month):not(.selected){
+      background:#f1f5ff;
+      border-color:#e2e8ff;
+    }
+    .calendar-day.other-month{ color:#cbd5e1; cursor:default; }
+    .calendar-day.selected{
+      background: var(--blue);
+      color:#fff;
+    }
+    .calendar-day.today:not(.selected){
+      border-color: var(--blue-200);
+      color: var(--blue);
+      background: #f8fbff;
+    }
 
-        .calendar-button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 10px 12px;
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 1.1em;
-            color: #3b82f6;
-            min-width: 44px;
-        }
+    input[type="date"].hidden-date-input{
+      position:absolute;
+      opacity:0;
+      pointer-events:none;
+      width:0;height:0;
+    }
 
-        .calendar-button:hover {
-            border-color: #3b82f6;
-            background: #f0f9ff;
-        }
+    /* Step 2 screenshot + accordion button */
+    .pathline{
+      color:#334155;
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    .pathline b{ font-weight:800; }
+    .shot-wrap{
+      border-radius: 16px;
+      border:1px solid var(--border);
+      overflow:hidden;
+      background:#fff;
+      box-shadow: 0 8px 20px rgba(2,8,23,.06);
+      max-width: 640px;
+    }
+    .shot-wrap img{
+      display:block;
+      width:100%;
+      height:auto;
+    }
 
-        .calendar-button.active {
-            border-color: #3b82f6;
-            background: #eff6ff;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
+    .accordion-btn{
+      margin-top: 14px;
+      border:1px solid var(--border);
+      background:#f8fafc;
+      color:#0f172a;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight:700;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .accordion-btn:hover{
+      background:#f1f5f9;
+      border-color:#dbe3ef;
+    }
+    .accordion-btn .caret{
+      font-size: 14px;
+      transform: translateY(1px);
+    }
 
-        .calendar-popup {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-            padding: 20px;
-            z-index: 1000;
-            display: none;
-            min-width: 320px;
-        }
+    .accordion{
+      display:none;
+      margin-top: 12px;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      background:#ffffff;
+      max-width: 720px;
+    }
+    .accordion.show{ display:block; }
+    .settings-list{
+      margin-top: 6px;
+      color:#334155;
+      font-size: 14px;
+      line-height: 1.6;
+      padding-left: 18px;
+    }
+    .settings-list li{ margin: 6px 0; }
 
-        .calendar-popup.show {
-            display: block;
-        }
+    /* Step 3 upload area (match dashed light-blue box + centered icon/text) */
+    .upload-area{
+      border: 2px dashed var(--blue-200);
+      border-radius: 18px;
+      padding: 40px 22px;
+      text-align:center;
+      background: #fbfdff;
+      cursor:pointer;
+      transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+      max-width: 760px;
+    }
+    .upload-area:hover{
+      background:#f3f8ff;
+      border-color: var(--blue-300);
+      box-shadow: 0 10px 22px rgba(37,99,235,.08);
+    }
+    .upload-area.dragover{
+      background:#eef5ff;
+      border-color: var(--blue);
+      box-shadow: 0 12px 26px rgba(37,99,235,.14);
+    }
+    input[type="file"]{display:none;}
 
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
+    .upload-icon{
+      width:56px;height:56px;
+      margin: 0 auto 14px;
+      border-radius: 16px;
+      background: #f1f5ff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 28px;
+      color: var(--blue);
+    }
+    .upload-text{
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color:#0f172a;
+    }
+    .upload-subtext{
+      color:var(--muted);
+      font-size: 14px;
+    }
 
-        .calendar-header button {
-            background: none;
-            border: none;
-            color: #64748b;
-            cursor: pointer;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 1.2em;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    /* Status + results keep simple */
+    .status{
+      margin-top: 16px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      display:none;
+      font-weight:700;
+    }
+    .status.success{ display:block; background:#ecfdf5; border-color:#bbf7d0; color:#166534; }
+    .status.error{ display:block; background:#fef2f2; border-color:#fecaca; color:#991b1b; }
+    .status.processing{ display:block; background:#eff6ff; border-color:#bfdbfe; color:#1e40af; }
 
-        .calendar-header button:hover {
-            background: #f1f5f9;
-            color: #3b82f6;
-        }
+    .results{ display:none; margin-top: 26px; }
+    .results.show{ display:block; }
 
-        .calendar-month-year {
-            font-weight: 600;
-            color: #1e293b;
-            font-size: 1em;
-        }
+    /* Keep your existing preview/table styles but soften to match */
+    .preview-table{
+      width:100%;
+      border-collapse: collapse;
+      margin: 16px 0 0;
+      font-size: 13px;
+      border:1px solid var(--border);
+      border-radius: 14px;
+      overflow:hidden;
+      box-shadow: 0 10px 22px rgba(2,8,23,.06);
+    }
+    .preview-table th{
+      background:#0f172a;
+      color:#fff;
+      padding:12px;
+      text-align:left;
+      font-weight:800;
+      font-size: 12.5px;
+      letter-spacing: .02em;
+    }
+    .preview-table td{
+      padding:10px 12px;
+      border-top:1px solid var(--border);
+      color:#0f172a;
+    }
+    .preview-table tr:hover{ background:#f8fafc; }
+    .preview-table td.previous-time{ color:#b91c1c; font-style: italic; }
 
-        .calendar-weekdays {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-            margin-bottom: 8px;
-        }
+    .copy-section{
+      border:1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      background:#fbfdff;
+    }
+    .copy-section h3{
+      font-size: 18px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+    .instructions{
+      background:#fff7ed;
+      border:1px solid #fed7aa;
+      border-radius: 12px;
+      padding: 12px 12px;
+      color:#7c2d12;
+      margin-bottom: 12px;
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
 
-        .calendar-weekday {
-            text-align: center;
-            font-size: 0.75em;
-            font-weight: 600;
-            color: #64748b;
-            padding: 8px 0;
-        }
+    textarea{
+      width:100%;
+      height: 190px;
+      border-radius: 14px;
+      border:1px solid var(--border);
+      padding: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 12px;
+      background:#fff;
+      margin-top: 10px;
+    }
 
-        .calendar-days {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 4px;
-        }
+    .button{
+      border:none;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 800;
+      cursor:pointer;
+      transition: transform .05s ease, filter .15s ease;
+      margin: 4px 8px 0 0;
+    }
+    .button:active{ transform: translateY(1px); }
+    .button.primary{ background:#16a34a; color:#fff; }
+    .button.primary:hover{ filter: brightness(.95); }
+    .button.secondary{ background:#0f172a; color:#fff; opacity:.85; }
+    .button.secondary:hover{ opacity:1; }
 
-        .calendar-day {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.9em;
-            color: #334155;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
+    .copy-message{
+      display:none;
+      margin-left: 10px;
+      font-weight: 800;
+      color:#166534;
+    }
 
-        .calendar-day:hover:not(.other-month):not(.selected) {
-            background: #f1f5f9;
-            color: #1e293b;
-        }
-
-        .calendar-day.other-month {
-            color: #cbd5e1;
-            cursor: default;
-        }
-
-        .calendar-day.selected {
-            background: #3b82f6;
-            color: white;
-            font-weight: 600;
-        }
-
-        .calendar-day.today:not(.selected) {
-            border-color: #3b82f6;
-            color: #3b82f6;
-            font-weight: 500;
-        }
-
-        .date-info {
-            margin-top: 14px;
-            color: #64748b;
-            font-size: 0.875em;
-            line-height: 1.5;
-        }
-
-        input[type="date"].hidden-date-input {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        .upload-area {
-            border: 2px dashed #999;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            background: #fafafa;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-        }
-        
-        .upload-area:hover {
-            background: #f0f0f0;
-            border-color: #666;
-        }
-        
-        .upload-area.dragover {
-            background: #e8e8e8;
-            border-color: #333;
-        }
-        
-        input[type="file"] {
-            display: none;
-        }
-        
-        .upload-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
-            color: #666;
-        }
-        
-        .upload-text {
-            font-size: 1.1em;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        .upload-subtext {
-            color: #666;
-            font-size: 0.9em;
-        }
-        
-        .status {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        
-        .status.success {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-            display: block;
-        }
-        
-        .status.error {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef9a9a;
-            display: block;
-        }
-        
-        .status.processing {
-            background: #e3f2fd;
-            color: #1565c0;
-            border: 1px solid #bbdefb;
-            display: block;
-        }
-        
-        .results {
-            display: none;
-            margin-top: 30px;
-        }
-        
-        .results.show {
-            display: block;
-        }
-        
-        .preview-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            font-size: 0.9em;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .preview-table th {
-            background: #555;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-        }
-        
-        .preview-table td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        
-        .preview-table tr:hover {
-            background: #f5f5f5;
-        }
-
-        .preview-table td.previous-time {
-            color: #c62828;
-            font-style: italic;
-        }
-        
-        .copy-section {
-            background: #fafafa;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            margin-top: 20px;
-        }
-        
-        .copy-section h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-        
-        .instructions {
-            background: #fff9e6;
-            border: 1px solid #ffecb3;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-        
-        .instructions strong {
-            display: block;
-            margin-bottom: 10px;
-            color: #555;
-        }
-        
-        textarea {
-            width: 100%;
-            height: 200px;
-            font-family: Arial, sans-serif;
-            font-size: 10pt;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            resize: vertical;
-        }
-        
-        .button {
-            background: #555;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1em;
-            font-weight: normal;
-            cursor: pointer;
-            margin: 10px 8px 10px 0;
-            transition: background 0.3s;
-        }
-
-        .button.primary {
-            background: #2e7d32;
-        }
-
-        .button.primary:hover {
-            background: #1b5e20;
-        }
-        
-        .button:not(.primary):hover {
-            background: #333;
-        }
-        
-        .button:active {
-            transform: scale(0.98);
-        }
-        
-        .button.secondary {
-            background: #777;
-        }
-        
-        .button.secondary:hover {
-            background: #555;
-        }
-        
-        .copy-message {
-            color: #2e7d32;
-            font-weight: normal;
-            margin-left: 10px;
-            display: none;
-        }
-        
-        .instructions-box {
-            background: #fafafa;
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-        
-        .instructions-box h3 {
-            color: #333;
-            margin-bottom: 15px;
-        }
-
-        .instructions-box h4 {
-            color: #333;
-            margin-top: 20px;
-            margin-bottom: 10px;
-        }
-        
-        .instructions-box ol {
-            margin-left: 20px;
-        }
-        
-        .instructions-box li {
-            margin: 8px 0;
-            color: #333;
-        }
-
-        .instructions-box ul {
-            margin-left: 20px;
-        }
-    </style>
+    /* Small spacing tweaks for “screenshot look” */
+    .tight{ margin-top: 6px; }
+  </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>Swim Times PDF Converter</h1>
-        <p class="subtitle">Convert Team Manager swim times PDFs to Google Sheets format</p>
+  <div class="container">
+    <h1>Swim Times PDF Converter</h1>
+    <p class="subtitle">Convert Team Manager swim times PDFs to Google Sheets format</p>
 
-        <div class="season-date-box">
-            <h3>Season Start Date</h3>
-            <p class="season-subtitle">Set the start date for your current swim season</p>
-            <div class="date-input-group">
-                <label for="seasonStartDate">Only include times from:</label>
-                <div class="date-picker-wrapper">
-                    <input type="text" id="dateInput" class="date-input-field" placeholder="MM/DD/YYYY" value="10/30/2025">
-                    <button type="button" class="calendar-button" id="calendarButton">📅</button>
-                    <div class="calendar-popup" id="calendarPopup">
-                        <div class="calendar-header">
-                            <button id="prevMonth" type="button">‹</button>
-                            <div class="calendar-month-year" id="monthYear"></div>
-                            <button id="nextMonth" type="button">›</button>
-                        </div>
-                        <div class="calendar-weekdays">
-                            <div class="calendar-weekday">Su</div>
-                            <div class="calendar-weekday">Mo</div>
-                            <div class="calendar-weekday">Tu</div>
-                            <div class="calendar-weekday">We</div>
-                            <div class="calendar-weekday">Th</div>
-                            <div class="calendar-weekday">Fr</div>
-                            <div class="calendar-weekday">Sa</div>
-                        </div>
-                        <div class="calendar-days" id="calendarDays"></div>
-                    </div>
-                    <input type="date" id="seasonStartDate" class="hidden-date-input" value="2025-10-30">
-                </div>
-            </div>
-            <div class="date-info">
-                Times before this date will be marked as "Previous" in the output. Update this date at the start of each new season.
-            </div>
-        </div>
-        
-        <div class="instructions-box">
-            <h3>Step-by-Step Instructions</h3>
-            
-            
-            
-            <h4>Part 1: Set Season Start Date</h4>
-            <ol start="3">
-                <li style="margin-bottom: 15px;">
-                    <strong>Look at the blue "Season Start Date" box above</strong> - Make sure the date is correct for your current season (default is 10/30/2025)
-                </li>
-                <li style="margin-bottom: 15px;">
-                    If you need to change it, click on the date field and select the correct season start date
-                </li>
-            </ol>
-            
-            <h4>Part 2: Generate the PDF in Team Manager</h4>
-            <ol>
-                <li style="margin-bottom: 15px;">
-                    Open Team Manager on your computer and go to: <strong>Reports → Performance Reports → Top Times</strong>
-                </li>
-                <li style="margin-bottom: 15px;">
-                    You will see a settings window. <strong>Match all settings as shown in this screenshot:</strong>
-                    <div style="margin: 12px 0 0 0;">
-                        <img
-                            src="https://i.imgur.com/25PNf2e.png"
-                            alt="Team Manager PDF Settings"
-                            style="width: 100%; max-width: 600px; border: 2px solid #d32f2f; margin: 0; border-radius: 5px;">
-                    </div>
-                </li>
-                <li style="margin-bottom: 15px;">
-                    <strong>Configure these exact settings:</strong>
-                    <ul style="margin-top: 8px; margin-left: 18px; line-height: 1.8;">
-                        <li><strong>Team:</strong> Select your team from the dropdown</li>
-                        <li><strong>Gen:</strong> All</li>
-                        <li><strong>Use Times Since:</strong> Enter your season start date (like 10/30/25) and <strong>CHECK the box</strong> next to "Use Since Date". <strong>Important:</strong> If Team Manager's date filter doesn't work properly for your team, try entering an earlier date (such as a date from 2024) to ensure all times are included. The converter will filter by date automatically using the Season Start Date you set at the top of this webpage.</li>
-                        <li><strong>Sort by:</strong> Name </li>
-                        <li><strong>Prelim / Finals Filter:</strong> All</li>
-                        <li><strong>Splits:</strong> None</li>
-                        <li><strong>Course Options:</strong> Select "YY (Convert to Y, Show Y)" - the YY option is required</li>
-                        <li><strong>Event Filters:</strong> Individual (NOT Relay)</li>
-                        <li><strong>Top How Many?:</strong> 1 </li>
-                        <li><strong>Layout:</strong> 1 Column </li>
-                    </ul>
-                </li>
-                <li style="margin-bottom: 15px;">
-                    Click the <strong>"Create Report"</strong> button at the bottom
-                </li>
-                <li style="margin-bottom: 15px;">
-                    A PDF will be generated. <strong>Save the PDF </strong> to your computer (remember where you save it!)
-                </li>
-            </ol>
-            
-            <h4>Part 3: Upload and Convert the PDF</h4>
-            <ol start="8">
-                <li style="margin-bottom: 15px;">
-                    <strong>Scroll down</strong> on this page until you see a gray box that says "Click to upload or drag & drop your PDF here"
-                </li>
-                <li style="margin-bottom: 15px;">
-                    Click on that gray box and select the PDF you just saved from Team Manager
-                </li>
-                <li style="margin-bottom: 15px;">
-                    Wait a few seconds while the PDF is processed. You will see a message saying "Processing PDF..."
-                </li>
-                <li style="margin-bottom: 15px;">
-                    When it's done, you'll see "Found X swimmers" in green
-                </li>
-            </ol>
-            
-            <h4>Part 4: Copy Data to Google Sheets</h4>
-            <ol start="12">
-                <li style="margin-bottom: 15px;">
-                    <strong>Scroll down more</strong> until you see a section titled <strong>"Data Ready to Copy"</strong>
-                </li>
-                <li style="margin-bottom: 15px;">
-                    Click the green <strong>"Copy Data"</strong> button (you should see "Copied!" appear briefly)
-                </li>
-                <li style="margin-bottom: 15px;">
-                    Open the Google Sheets document
-                </li>
-                <li style="margin-bottom: 15px;">
-                    Ensure you're on school's sheet tab at the bottom of Google Sheets 
-                </li>
-                <li style="margin-bottom: 15px;">
-                    Click on cell <strong>A5</strong> (this is column A, row 5 - the first empty row under the headers)
-                </li>
-                <li style="margin-bottom: 15px;">
-                    Press <strong>Ctrl+V</strong> on your keyboard (or <strong>Cmd+V</strong> if you're on a Mac)
-                </li>
-                <li style="margin-bottom: 15px;">
-                    The data will fill in automatically across all columns. <strong>Done!</strong>
-                </li>
-            </ol>
-        </div>
-        
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-icon">📄</div>
-            <div class="upload-text">Click to upload or drag & drop your PDF here</div>
-            <div class="upload-subtext">Supports Team Manager swim times PDF reports</div>
-            <input type="file" id="fileInput" accept=".pdf">
-        </div>
-        
-        <div class="status" id="status"></div>
-        
-        <div class="results" id="results">
-            <div class="copy-section">
-                <h3>Data Ready to Copy</h3>
-                <div class="instructions">
-                    <strong>Instructions:</strong>
-                    1. Click <strong>Copy Data</strong><br>
-                    2. Ensure you're on your schools Google Sheet tab<br>
-                    3. Click on cell <strong>A5</strong> in your school sheet<br>
-                    4. Paste the datainto cell A5 using Ctrl+V (or Cmd+V on Mac) to paste<br>
-                    <span style="color: #c62828;">NOTE: Header row is NOT included – paste into row 5 or below</span>
-                </div>
-                <button class="button primary" onclick="copyToClipboard()">Copy Data</button>
-                <button class="button secondary" onclick="downloadCSV()">Download CSV</button>
-                <span class="copy-message" id="copyMessage">Copied! Paste at cell A5</span>
-                <textarea id="dataOutput" readonly></textarea>
+    <!-- STEP 1 -->
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Set Season Start Date</div>
+        <div class="step-desc">Choose the date - times before this will be marked as "Previous".</div>
+
+        <div class="date-row">
+          <label for="seasonStartDate">Only include times from:</label>
+          <div class="date-picker-wrapper">
+            <input type="text" id="dateInput" class="date-input-field" placeholder="MM/DD/YYYY" value="10/30/2025" />
+            <button type="button" class="calendar-button" id="calendarButton" aria-label="Open calendar">🗓️</button>
+
+            <div class="calendar-popup" id="calendarPopup">
+              <div class="calendar-header">
+                <button id="prevMonth" type="button" aria-label="Previous month">‹</button>
+                <div class="calendar-month-year" id="monthYear"></div>
+                <button id="nextMonth" type="button" aria-label="Next month">›</button>
+              </div>
+              <div class="calendar-weekdays">
+                <div class="calendar-weekday">Su</div><div class="calendar-weekday">Mo</div><div class="calendar-weekday">Tu</div>
+                <div class="calendar-weekday">We</div><div class="calendar-weekday">Th</div><div class="calendar-weekday">Fr</div>
+                <div class="calendar-weekday">Sa</div>
+              </div>
+              <div class="calendar-days" id="calendarDays"></div>
             </div>
 
-            <h2 style="margin-top: 30px;">Preview (optional)</h2>
-            <div id="previewContainer"></div>
+            <input type="date" id="seasonStartDate" class="hidden-date-input" value="2025-10-30" />
+          </div>
         </div>
+      </div>
     </div>
 
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        
-        let processedData = [];
-        let tsvData = '';
-        
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
-        const status = document.getElementById('status');
-        const results = document.getElementById('results');
+    <!-- STEP 2 -->
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Generate PDF in Team Manager</div>
+        <div class="step-desc pathline">
+          Open Team Manager → <b>Reports</b> → <b>Performance Reports</b> → <b>Top Times</b>
+        </div>
+        <div class="step-desc" style="color: #0f172a;"><b>Configure settings to be the same as the image below:</b></div>
 
-        // Custom Calendar Implementation
-        let currentDate = new Date(2025, 9, 30); // October 30, 2025
-        let selectedDate = new Date(2025, 9, 30);
-        let displayMonth = new Date(2025, 9, 1);
+        <div class="shot-wrap">
+          <img src="https://i.imgur.com/25PNf2e.png" alt="Team Manager Top Times settings screenshot" />
+        </div>
 
-        const dateInput = document.getElementById('dateInput');
-        const calendarButton = document.getElementById('calendarButton');
-        const calendarPopup = document.getElementById('calendarPopup');
-        const monthYear = document.getElementById('monthYear');
-        const calendarDays = document.getElementById('calendarDays');
-        const prevMonth = document.getElementById('prevMonth');
-        const nextMonth = document.getElementById('nextMonth');
-        const hiddenInput = document.getElementById('seasonStartDate');
+        <button class="accordion-btn" id="toggleSettings" type="button">
+          <span class="caret">▶</span> View Detailed Settings List
+        </button>
 
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
+        <div class="accordion" id="settingsPanel">
+          <ul class="settings-list">
+            <li><b>Gen:</b> All</li>
+            <li><b>Sort by:</b> Name</li>
+            <li><b>Splits:</b> None</li>
+            <li><b>Course Options:</b> YY (Convert to Y, Show Y)</li>
+            <li><b>Event Filters:</b> Individual (NOT Relay)</li>
+            <li><b>Top How Many?:</b> 1</li>
+            <li><b>Layout:</b> 1 Column</li>
+            <li><b>Use Times Since:</b> enter your season start date and check the “Use Since Date” box</li>
+          </ul>
+        </div>
+      </div>
+    </div>
 
-        function formatDateDisplay(date) {
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const year = date.getFullYear();
-            return `${month}/${day}/${year}`;
-        }
+    <!-- STEP 3 -->
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Upload Your PDF</div>
+        <div class="step-desc">Click below or drag and drop the PDF you just created.</div>
+        <div class="step-desc" style="font-weight: 800; color: #0f172a;">After uploading, scroll down and copy the data.</div>
 
-        function formatDateISO(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📄</div>
+          <div class="upload-text">Click to upload or drag &amp; drop</div>
+          <div class="upload-subtext">Team Manager swim times report</div>
+          <input type="file" id="fileInput" accept=".pdf" />
+        </div>
 
-        function parseInputDate(str) {
-            const parts = str.split('/');
-            if (parts.length === 3) {
-                const month = parseInt(parts[0]) - 1;
-                const day = parseInt(parts[1]);
-                const year = parseInt(parts[2]);
-                if (!isNaN(month) && !isNaN(day) && !isNaN(year)) {
-                    return new Date(year, month, day);
-                }
-            }
-            return null;
-        }
+        <div class="status" id="status"></div>
 
-        function updateDateValue(date) {
-            selectedDate = date;
-            dateInput.value = formatDateDisplay(date);
-            hiddenInput.value = formatDateISO(date);
-        }
+        <div class="results" id="results">
+          <div class="copy-section">
+            <h3>Data Ready to Copy</h3>
+            <div class="instructions">
+              1) Click <b>Copy Data</b><br />
+              2) Open your Google Sheet (your school tab)<br />
+              3) Click cell <b>A5</b><br />
+              4) Paste (Ctrl+V / Cmd+V)<br />
+              <span style="display:block;margin-top:6px;font-weight:800;">Note: headers are not included.</span>
+            </div>
 
-        function renderCalendar() {
-            const year = displayMonth.getFullYear();
-            const month = displayMonth.getMonth();
-            
-            monthYear.textContent = `${monthNames[month]} ${year}`;
-            
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const daysInPrevMonth = new Date(year, month, 0).getDate();
-            
-            calendarDays.innerHTML = '';
-            
-            // Previous month days
-            for (let i = firstDay - 1; i >= 0; i--) {
-                const day = daysInPrevMonth - i;
-                const dayEl = document.createElement('div');
-                dayEl.className = 'calendar-day other-month';
-                dayEl.textContent = day;
-                calendarDays.appendChild(dayEl);
-            }
-            
-            // Current month days
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayEl = document.createElement('div');
-                dayEl.className = 'calendar-day';
-                dayEl.textContent = day;
-                
-                const dateToCheck = new Date(year, month, day);
-                
-                // Check if selected
-                if (selectedDate && 
-                    dateToCheck.getDate() === selectedDate.getDate() &&
-                    dateToCheck.getMonth() === selectedDate.getMonth() &&
-                    dateToCheck.getFullYear() === selectedDate.getFullYear()) {
-                    dayEl.classList.add('selected');
-                }
-                
-                // Check if today
-                const today = new Date();
-                if (dateToCheck.getDate() === today.getDate() &&
-                    dateToCheck.getMonth() === today.getMonth() &&
-                    dateToCheck.getFullYear() === today.getFullYear()) {
-                    dayEl.classList.add('today');
-                }
-                
-                dayEl.addEventListener('click', () => {
-                    updateDateValue(new Date(year, month, day));
-                    calendarPopup.classList.remove('show');
-                    calendarButton.classList.remove('active');
-                    renderCalendar();
-                });
-                
-                calendarDays.appendChild(dayEl);
-            }
-            
-            // Next month days
-            const totalCells = calendarDays.children.length;
-            const remainingCells = 42 - totalCells; // 6 rows × 7 days
-            for (let day = 1; day <= remainingCells; day++) {
-                const dayEl = document.createElement('div');
-                dayEl.className = 'calendar-day other-month';
-                dayEl.textContent = day;
-                calendarDays.appendChild(dayEl);
-            }
-        }
+            <button class="button primary" onclick="copyToClipboard()">Copy Data</button>
+            <button class="button secondary" onclick="downloadCSV()">Download CSV</button>
+            <span class="copy-message" id="copyMessage">Copied! Paste at cell A5</span>
 
-        // Handle typing in the input field
-        let hasTyped = false;
-        let lastValue = dateInput.value;
-        
-        dateInput.addEventListener('focus', () => {
-            hasTyped = false;
-            lastValue = dateInput.value;
+            <textarea id="dataOutput" readonly></textarea>
+          </div>
+
+          <h2 class="tight" style="margin-top:18px;font-size:18px;font-weight:900;">Preview (optional)</h2>
+          <div id="previewContainer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+    let processedData = [];
+    let tsvData = "";
+
+    const uploadArea = document.getElementById("uploadArea");
+    const fileInput = document.getElementById("fileInput");
+    const status = document.getElementById("status");
+    const results = document.getElementById("results");
+
+    // Accordion
+    const toggleSettings = document.getElementById("toggleSettings");
+    const settingsPanel = document.getElementById("settingsPanel");
+    toggleSettings.addEventListener("click", () => {
+      const open = settingsPanel.classList.toggle("show");
+      toggleSettings.querySelector(".caret").textContent = open ? "▼" : "▶";
+    });
+
+    // Custom Calendar Implementation (your logic, just restyled)
+    let currentDate = new Date(2025, 9, 30); // Oct 30, 2025
+    let selectedDate = new Date(2025, 9, 30);
+    let displayMonth = new Date(2025, 9, 1);
+
+    const dateInput = document.getElementById("dateInput");
+    const calendarButton = document.getElementById("calendarButton");
+    const calendarPopup = document.getElementById("calendarPopup");
+    const monthYear = document.getElementById("monthYear");
+    const calendarDays = document.getElementById("calendarDays");
+    const prevMonth = document.getElementById("prevMonth");
+    const nextMonth = document.getElementById("nextMonth");
+    const hiddenInput = document.getElementById("seasonStartDate");
+
+    const monthNames = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
+
+    function formatDateDisplay(date) {
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${month}/${day}/${year}`;
+    }
+
+    function formatDateISO(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseInputDate(str) {
+      const parts = str.split("/");
+      if (parts.length === 3) {
+        const month = parseInt(parts[0], 10) - 1;
+        const day = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+        const d = new Date(year, month, day);
+        if (!isNaN(d.getTime())) return d;
+      }
+      return null;
+    }
+
+    function updateDateValue(date) {
+      selectedDate = date;
+      dateInput.value = formatDateDisplay(date);
+      hiddenInput.value = formatDateISO(date);
+    }
+
+    function renderCalendar() {
+      const year = displayMonth.getFullYear();
+      const month = displayMonth.getMonth();
+
+      monthYear.textContent = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+      calendarDays.innerHTML = "";
+
+      // Prev month fillers
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const day = daysInPrevMonth - i;
+        const el = document.createElement("div");
+        el.className = "calendar-day other-month";
+        el.textContent = day;
+        calendarDays.appendChild(el);
+      }
+
+      // Current month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const el = document.createElement("div");
+        el.className = "calendar-day";
+        el.textContent = day;
+
+        const d = new Date(year, month, day);
+
+        if (
+          d.getDate() === selectedDate.getDate() &&
+          d.getMonth() === selectedDate.getMonth() &&
+          d.getFullYear() === selectedDate.getFullYear()
+        ) el.classList.add("selected");
+
+        const today = new Date();
+        if (
+          d.getDate() === today.getDate() &&
+          d.getMonth() === today.getMonth() &&
+          d.getFullYear() === today.getFullYear()
+        ) el.classList.add("today");
+
+        el.addEventListener("click", () => {
+          updateDateValue(new Date(year, month, day));
+          calendarPopup.classList.remove("show");
+          calendarButton.classList.remove("active");
+          renderCalendar();
         });
 
-        dateInput.addEventListener('keydown', (e) => {
-            // When user starts typing, clear the field first
-            if (!hasTyped && e.key.length === 1 && !e.ctrlKey && !e.metaKey && e.key !== '/' && !isNaN(e.key)) {
-                hasTyped = true;
-                dateInput.value = '';
-                lastValue = '';
-            }
-        });
+        calendarDays.appendChild(el);
+      }
 
-        dateInput.addEventListener('input', (e) => {
-            let value = dateInput.value;
-            let cursorPos = dateInput.selectionStart;
-            
-            // Check if user is deleting
-            if (value.length < lastValue.length) {
-                lastValue = value;
-                return; // Allow deletion without reformatting
-            }
-            
-            // Remove non-digits
-            let digitsOnly = value.replace(/\D/g, '');
-            
-            // Format with slashes
-            let formatted = '';
-            if (digitsOnly.length > 0) {
-                formatted = digitsOnly.slice(0, 2);
-            }
-            if (digitsOnly.length >= 3) {
-                formatted += '/' + digitsOnly.slice(2, 4);
-            }
-            if (digitsOnly.length >= 5) {
-                formatted += '/' + digitsOnly.slice(4, 8);
-            }
-            
-            dateInput.value = formatted;
-            lastValue = formatted;
-        });
+      // Next month fillers (6 rows)
+      const remainingCells = 42 - calendarDays.children.length;
+      for (let day = 1; day <= remainingCells; day++) {
+        const el = document.createElement("div");
+        el.className = "calendar-day other-month";
+        el.textContent = day;
+        calendarDays.appendChild(el);
+      }
+    }
 
-        dateInput.addEventListener('blur', () => {
-            const parsed = parseInputDate(dateInput.value);
-            if (parsed && !isNaN(parsed.getTime())) {
-                updateDateValue(parsed);
-                displayMonth = new Date(parsed);
-            } else {
-                // Reset to previous valid date if invalid
-                dateInput.value = formatDateDisplay(selectedDate);
-            }
-            hasTyped = false;
-            lastValue = dateInput.value;
-        });
+    // Typing formatting (your behavior)
+    let hasTyped = false;
+    let lastValue = dateInput.value;
 
-        dateInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                dateInput.blur();
-            }
-        });
+    dateInput.addEventListener("focus", () => {
+      hasTyped = false;
+      lastValue = dateInput.value;
+    });
 
-        calendarButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isShowing = calendarPopup.classList.contains('show');
-            if (isShowing) {
-                calendarPopup.classList.remove('show');
-                calendarButton.classList.remove('active');
-            } else {
-                displayMonth = new Date(selectedDate);
-                renderCalendar();
-                calendarPopup.classList.add('show');
-                calendarButton.classList.add('active');
-            }
-        });
+    dateInput.addEventListener("keydown", (e) => {
+      if (!hasTyped && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !isNaN(e.key)) {
+        hasTyped = true;
+        dateInput.value = "";
+        lastValue = "";
+      }
+    });
 
-        prevMonth.addEventListener('click', (e) => {
-            e.stopPropagation();
-            displayMonth.setMonth(displayMonth.getMonth() - 1);
-            renderCalendar();
-        });
+    dateInput.addEventListener("input", () => {
+      let value = dateInput.value;
 
-        nextMonth.addEventListener('click', (e) => {
-            e.stopPropagation();
-            displayMonth.setMonth(displayMonth.getMonth() + 1);
-            renderCalendar();
-        });
+      if (value.length < lastValue.length) {
+        lastValue = value;
+        return;
+      }
 
-        document.addEventListener('click', (e) => {
-            if (!calendarPopup.contains(e.target) && e.target !== calendarButton) {
-                calendarPopup.classList.remove('show');
-                calendarButton.classList.remove('active');
-            }
-        });
+      let digitsOnly = value.replace(/\D/g, "");
+      let formatted = "";
+      if (digitsOnly.length > 0) formatted = digitsOnly.slice(0, 2);
+      if (digitsOnly.length >= 3) formatted += "/" + digitsOnly.slice(2, 4);
+      if (digitsOnly.length >= 5) formatted += "/" + digitsOnly.slice(4, 8);
 
-        // Initialize calendar
+      dateInput.value = formatted;
+      lastValue = formatted;
+    });
+
+    dateInput.addEventListener("blur", () => {
+      const parsed = parseInputDate(dateInput.value);
+      if (parsed) {
+        updateDateValue(parsed);
+        displayMonth = new Date(parsed);
+      } else {
+        dateInput.value = formatDateDisplay(selectedDate);
+      }
+      hasTyped = false;
+      lastValue = dateInput.value;
+    });
+
+    calendarButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = calendarPopup.classList.contains("show");
+      if (open) {
+        calendarPopup.classList.remove("show");
+        calendarButton.classList.remove("active");
+      } else {
+        displayMonth = new Date(selectedDate);
         renderCalendar();
-        
-        uploadArea.addEventListener('click', () => fileInput.click());
-        
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
-        
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
-        
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const files = e.dataTransfer.files;
-            if (files.length > 0 && files[0].type === 'application/pdf') {
-                handleFile(files[0]);
-            }
-        });
-        
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-            }
-        });
-        
-        function showStatus(message, type) {
-            status.textContent = message;
-            status.className = 'status ' + type;
+        calendarPopup.classList.add("show");
+        calendarButton.classList.add("active");
+      }
+    });
+
+    prevMonth.addEventListener("click", (e) => {
+      e.stopPropagation();
+      displayMonth.setMonth(displayMonth.getMonth() - 1);
+      renderCalendar();
+    });
+
+    nextMonth.addEventListener("click", (e) => {
+      e.stopPropagation();
+      displayMonth.setMonth(displayMonth.getMonth() + 1);
+      renderCalendar();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!calendarPopup.contains(e.target) && e.target !== calendarButton) {
+        calendarPopup.classList.remove("show");
+        calendarButton.classList.remove("active");
+      }
+    });
+
+    renderCalendar();
+
+    // Upload interactions
+    uploadArea.addEventListener("click", () => fileInput.click());
+
+    uploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      uploadArea.classList.add("dragover");
+    });
+
+    uploadArea.addEventListener("dragleave", () => {
+      uploadArea.classList.remove("dragover");
+    });
+
+    uploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove("dragover");
+      const files = e.dataTransfer.files;
+      if (files.length > 0 && files[0].type === "application/pdf") handleFile(files[0]);
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) handleFile(e.target.files[0]);
+    });
+
+    function showStatus(message, type) {
+      status.textContent = message;
+      status.className = "status " + type;
+    }
+
+    function parseDate(dateStr) {
+      const parts = dateStr.split("/");
+      if (parts.length === 3) {
+        const month = parseInt(parts[0], 10);
+        const day = parseInt(parts[1], 10);
+        const year = parseInt(parts[2], 10);
+        return new Date(year, month - 1, day);
+      }
+      return null;
+    }
+
+    function getSeasonStartDate() {
+      const d = document.getElementById("seasonStartDate");
+      return new Date(d.value);
+    }
+
+    function isDateValid(meetDateStr) {
+      const meetDate = parseDate(meetDateStr);
+      if (!meetDate) return false;
+      return meetDate >= getSeasonStartDate();
+    }
+
+    function formatSwimTime(timeStr) {
+      timeStr = timeStr.trim();
+      if (timeStr.includes(":")) {
+        const parts = timeStr.split(":");
+        if (parts.length === 2) {
+          let minutes = parts[0];
+          let seconds = parts[1];
+          if (seconds.includes(".")) {
+            const secParts = seconds.split(".");
+            seconds = secParts[0].padStart(2, "0") + "." + secParts[1].padEnd(2, "0");
+          }
+          return `${minutes}:${seconds}`;
+        }
+      } else if (timeStr.includes(".")) {
+        const secParts = timeStr.split(".");
+        return secParts[0].padStart(2, "0") + "." + secParts[1].padEnd(2, "0");
+      }
+      return timeStr.padStart(2, "0");
+    }
+
+    function timeToSeconds(t) {
+      if (t === "NT" || t === "Previous") return Infinity;
+      if (t.includes(":")) {
+        const parts = t.split(":");
+        return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+      }
+      return parseFloat(t);
+    }
+
+    async function handleFile(file) {
+      showStatus("Processing PDF...", "processing");
+      results.classList.remove("show");
+
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+
+        let allLines = [];
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+
+          const lineMap = new Map();
+          textContent.items.forEach((item) => {
+            const y = Math.round(item.transform[5]);
+            if (!lineMap.has(y)) lineMap.set(y, []);
+            lineMap.get(y).push(item);
+          });
+
+          const sortedLines = Array.from(lineMap.entries())
+            .sort((a, b) => b[0] - a[0])
+            .map(([y, items]) =>
+              items
+                .sort((a, b) => a.transform[4] - b.transform[4])
+                .map((item) => item.str)
+                .join(" ")
+            );
+
+          allLines.push(...sortedLines);
         }
 
-        function parseDate(dateStr) {
-            // Parses dates in format "12/19/2025" or "1/6/2026"
-            const parts = dateStr.split('/');
-            if (parts.length === 3) {
-                const month = parseInt(parts[0]);
-                const day = parseInt(parts[1]);
-                const year = parseInt(parts[2]);
-                return new Date(year, month - 1, day);
-            }
-            return null;
+        const swimmers = extractSwimmerData(allLines);
+        if (swimmers.length === 0) {
+          showStatus("No swimmer data found. Please check PDF format.", "error");
+          return;
         }
 
-        function getSeasonStartDate() {
-            const dateInput = document.getElementById('seasonStartDate');
-            return new Date(dateInput.value);
+        processedData = swimmers;
+        displayResults(swimmers);
+        showStatus("Found " + swimmers.length + " swimmers", "success");
+      } catch (error) {
+        showStatus("Error processing PDF: " + error.message, "error");
+        console.error(error);
+      }
+    }
+
+    function extractSwimmerData(lines) {
+      const swimmerMap = new Map();
+      let currentSwimmer = null;
+
+      for (let line of lines) {
+        line = line.trim();
+        if (!line) continue;
+
+        const swimmerMatch = line.match(
+          /^([A-Za-z][A-Za-z\s\.\-']+?)\s+\(\s*(\d+)\s*\)\s+([BG])(?:\s+\(\s*(?:Yr:|Year:)?\s*[A-Z0-9]+\s*\))?\s*$/i
+        );
+
+        if (swimmerMatch) {
+          const name = swimmerMatch[1].trim();
+
+          if (swimmerMap.has(name)) {
+            currentSwimmer = swimmerMap.get(name);
+          } else {
+            currentSwimmer = {
+              "Swimmer Name": name,
+              "Gender ( M or F)": swimmerMatch[3].toUpperCase() === "B" ? "M" : "F",
+              "200 FREE": "NT",
+              "200 IM": "NT",
+              "50 FREE": "NT",
+              "100 FLY": "NT",
+              "100 FREE": "NT",
+              "500 FREE": "NT",
+              "100 BACK": "NT",
+              "100 BREAST": "NT",
+            };
+            swimmerMap.set(name, currentSwimmer);
+          }
+          continue;
         }
 
-        function isDateValid(meetDateStr) {
-            const meetDate = parseDate(meetDateStr);
-            if (!meetDate) return false;
-            
-            const seasonStart = getSeasonStartDate();
-            return meetDate >= seasonStart;
-        }
-        
-        function formatSwimTime(timeStr) {
-            timeStr = timeStr.trim();
-            if (timeStr.includes(':')) {
-                const parts = timeStr.split(':');
-                if (parts.length === 2) {
-                    let minutes = parts[0];
-                    let seconds = parts[1];
-                    if (seconds.includes('.')) {
-                        const secParts = seconds.split('.');
-                        seconds = secParts[0].padStart(2, '0') + '.' + secParts[1].padEnd(2, '0');
-                    }
-                    return `${minutes}:${seconds}`;
-                }
-            } else if (timeStr.includes('.')) {
-                const secParts = timeStr.split('.');
-                return secParts[0].padStart(2, '0') + '.' + secParts[1].padEnd(2, '0');
+        if (currentSwimmer) {
+          const timeMatch = line.match(
+            /^x?\s*(\d{1,2}:\d{2}\.\d{2}|\d{1,3}\.\d{2})\s+(?:Y|SCY)\s+(?:\d+\s+)?(?:F|Finals?|Prelims?|P)\s+(\d+)\s+([A-Za-z\s]+?)\s+(\d{1,2}\/\d{1,2}\/\d{4})/i
+          );
+
+          if (timeMatch) {
+            const rawTime = timeMatch[1];
+            const distance = timeMatch[2];
+            const eventName = timeMatch[3].trim().toLowerCase();
+            const meetDate = timeMatch[4];
+
+            const time = formatSwimTime(rawTime);
+            let eventKey = null;
+
+            if (eventName.includes("free") || eventName.includes("freestyle")) {
+              const distMap = { "50": "50 FREE", "100": "100 FREE", "200": "200 FREE", "500": "500 FREE" };
+              eventKey = distMap[distance];
+            } else if (eventName.includes("back") && distance === "100") {
+              eventKey = "100 BACK";
+            } else if (eventName.includes("breast") && distance === "100") {
+              eventKey = "100 BREAST";
+            } else if ((eventName.includes("fly") || eventName.includes("butterfly")) && distance === "100") {
+              eventKey = "100 FLY";
+            } else if ((eventName.includes("i.m") || eventName.includes("im") || eventName.includes("medley")) && distance === "200") {
+              eventKey = "200 IM";
             }
-            return timeStr.padStart(2, '0');
-        }
-        
-        function timeToSeconds(t) {
-            if (t === 'NT' || t === 'Previous') return Infinity;
-            if (t.includes(':')) {
-                const parts = t.split(':');
-                return parseFloat(parts[0]) * 60 + parseFloat(parts[1]);
+
+            if (eventKey) {
+              if (!isDateValid(meetDate)) {
+                if (currentSwimmer[eventKey] === "NT") {
+                  currentSwimmer[eventKey] = "Previous";
+                } else if (
+                  currentSwimmer[eventKey] !== "Previous" &&
+                  timeToSeconds(time) < timeToSeconds(currentSwimmer[eventKey])
+                ) {
+                  currentSwimmer[eventKey] = "Previous";
+                }
+              } else {
+                if (
+                  currentSwimmer[eventKey] === "NT" ||
+                  currentSwimmer[eventKey] === "Previous" ||
+                  timeToSeconds(time) < timeToSeconds(currentSwimmer[eventKey])
+                ) {
+                  currentSwimmer[eventKey] = time;
+                }
+              }
             }
-            return parseFloat(t);
+          }
         }
-        
-        async function handleFile(file) {
-            showStatus('Processing PDF...', 'processing');
-            results.classList.remove('show');
-            
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
-                
-                let allLines = [];
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    
-                    const lineMap = new Map();
-                    textContent.items.forEach(item => {
-                        const y = Math.round(item.transform[5]);
-                        if (!lineMap.has(y)) {
-                            lineMap.set(y, []);
-                        }
-                        lineMap.get(y).push(item);
-                    });
-                    
-                    const sortedLines = Array.from(lineMap.entries())
-                        .sort((a, b) => b[0] - a[0])
-                        .map(([y, items]) => {
-                            return items
-                                .sort((a, b) => a.transform[4] - b.transform[4])
-                                .map(item => item.str)
-                                .join(' ');
-                        });
-                    
-                    allLines.push(...sortedLines);
-                }
-                
-                console.log('Extracted lines:', allLines.slice(0, 20));
-                
-                const swimmers = extractSwimmerData(allLines);
-                
-                if (swimmers.length === 0) {
-                    showStatus('No swimmer data found. Please check PDF format.', 'error');
-                    console.log('Full text sample:', allLines.slice(0, 50));
-                    return;
-                }
-                
-                processedData = swimmers;
-                displayResults(swimmers);
-                showStatus('Found ' + swimmers.length + ' swimmers', 'success');
-                
-            } catch (error) {
-                showStatus('Error processing PDF: ' + error.message, 'error');
-                console.error(error);
-            }
-        }
-        
-        function extractSwimmerData(lines) {
-            const swimmerMap = new Map();
-            let currentSwimmer = null;
-            let currentSwimmerName = null;
-            
-            for (let line of lines) {
-                line = line.trim();
-                if (!line) continue;
-                
-                const swimmerMatch = line.match(/^([A-Za-z][A-Za-z\s\.\-']+?)\s+\(\s*(\d+)\s*\)\s+([BG])(?:\s+\(\s*(?:Yr:|Year:)?\s*[A-Z0-9]+\s*\))?\s*$/i);
-                
-                if (swimmerMatch) {
-                    const name = swimmerMatch[1].trim();
-                    currentSwimmerName = name;
-                    
-                    if (swimmerMap.has(name)) {
-                        currentSwimmer = swimmerMap.get(name);
-                    } else {
-                        currentSwimmer = {
-                            'Swimmer Name': name,
-                            'Gender ( M or F)': swimmerMatch[3].toUpperCase() === 'B' ? 'M' : 'F',
-                            '200 FREE': 'NT', '200 IM': 'NT', '50 FREE': 'NT', '100 FLY': 'NT',
-                            '100 FREE': 'NT', '500 FREE': 'NT', '100 BACK': 'NT', '100 BREAST': 'NT'
-                        };
-                        swimmerMap.set(name, currentSwimmer);
-                    }
-                    continue;
-                }
-                
-                if (currentSwimmer) {
-                    // Match time line with date at the end
-                    const timeMatch = line.match(/^x?\s*(\d{1,2}:\d{2}\.\d{2}|\d{1,3}\.\d{2})\s+(?:Y|SCY)\s+(?:\d+\s+)?(?:F|Finals?|Prelims?|P)\s+(\d+)\s+([A-Za-z\s]+?)\s+(\d{1,2}\/\d{1,2}\/\d{4})/i);
-                    
-                    if (timeMatch) {
-                        const rawTime = timeMatch[1];
-                        const distance = timeMatch[2];
-                        const eventName = timeMatch[3].trim().toLowerCase();
-                        const meetDate = timeMatch[4];
-                        
-                        const time = formatSwimTime(rawTime);
-                        
-                        let eventKey = null;
-                        
-                        if (eventName.includes('free') || eventName.includes('freestyle')) {
-                            const distMap = {'50': '50 FREE', '100': '100 FREE', '200': '200 FREE', '500': '500 FREE'};
-                            eventKey = distMap[distance];
-                        } else if (eventName.includes('back') && distance === '100') {
-                            eventKey = '100 BACK';
-                        } else if (eventName.includes('breast') && distance === '100') {
-                            eventKey = '100 BREAST';
-                        } else if ((eventName.includes('fly') || eventName.includes('butterfly')) && distance === '100') {
-                            eventKey = '100 FLY';
-                        } else if ((eventName.includes('i.m') || eventName.includes('im') || eventName.includes('medley')) && distance === '200') {
-                            eventKey = '200 IM';
-                        }
-                        
-                        if (eventKey) {
-                            // Check if date is valid (on or after season start)
-                            if (!isDateValid(meetDate)) {
-                                // Mark as Previous if this is the only time or better than current
-                                if (currentSwimmer[eventKey] === 'NT') {
-                                    currentSwimmer[eventKey] = 'Previous';
-                                } else if (currentSwimmer[eventKey] !== 'Previous' && timeToSeconds(time) < timeToSeconds(currentSwimmer[eventKey])) {
-                                    // Only replace with Previous if current time is slower
-                                    currentSwimmer[eventKey] = 'Previous';
-                                }
-                            } else {
-                                // Valid current season time
-                                try {
-                                    if (currentSwimmer[eventKey] === 'NT' || currentSwimmer[eventKey] === 'Previous' || timeToSeconds(time) < timeToSeconds(currentSwimmer[eventKey])) {
-                                        currentSwimmer[eventKey] = time;
-                                    }
-                                } catch {
-                                    if (currentSwimmer[eventKey] === 'NT' || currentSwimmer[eventKey] === 'Previous') {
-                                        currentSwimmer[eventKey] = time;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            
-            // No longer needed - we handle Previous marking inline now
-            return Array.from(swimmerMap.values());
-        }
-        
-        function displayResults(swimmers) {
-            const columns = ['Swimmer Name', 'Gender ( M or F)', '200 FREE', '200 IM', '50 FREE', '100 FLY', '100 FREE', '500 FREE', '100 BACK', '100 BREAST'];
-            
-            let html = '<table class="preview-table"><thead><tr>';
-            columns.forEach(col => html += `<th>${col}</th>`);
-            html += '</tr></thead><tbody>';
-            
-            swimmers.forEach(swimmer => {
-                html += '<tr>';
-                columns.forEach(col => {
-                    const value = swimmer[col];
-                    const cellClass = value === 'Previous' ? 'previous-time' : '';
-                    html += `<td class="${cellClass}">${value}</td>`;
-                });
-                html += '</tr>';
-            });
-            
-            html += '</tbody></table>';
-            document.getElementById('previewContainer').innerHTML = html;
-            
-            tsvData = swimmers.map(swimmer => 
-                columns.map(col => swimmer[col]).join('\t')
-            ).join('\n');
-            
-            document.getElementById('dataOutput').value = tsvData;
-            results.classList.add('show');
-        }
-        
-        function copyToClipboard() {
-            const textarea = document.getElementById('dataOutput');
-            textarea.select();
-            document.execCommand('copy');
-            
-            const message = document.getElementById('copyMessage');
-            message.style.display = 'inline';
-            setTimeout(() => message.style.display = 'none', 5000);
-        }
-        
-        function downloadCSV() {
-            const blob = new Blob([tsvData], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'swim_times.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-    </script>
+      }
+
+      return Array.from(swimmerMap.values());
+    }
+
+    function displayResults(swimmers) {
+      const columns = [
+        "Swimmer Name","Gender ( M or F)","200 FREE","200 IM","50 FREE",
+        "100 FLY","100 FREE","500 FREE","100 BACK","100 BREAST"
+      ];
+
+      let html = '<table class="preview-table"><thead><tr>';
+      columns.forEach((col) => (html += `<th>${col}</th>`));
+      html += "</tr></thead><tbody>";
+
+      swimmers.forEach((swimmer) => {
+        html += "<tr>";
+        columns.forEach((col) => {
+          const value = swimmer[col];
+          const cellClass = value === "Previous" ? "previous-time" : "";
+          html += `<td class="${cellClass}">${value}</td>`;
+        });
+        html += "</tr>";
+      });
+
+      html += "</tbody></table>";
+      document.getElementById("previewContainer").innerHTML = html;
+
+      tsvData = swimmers
+        .map((swimmer) => columns.map((col) => swimmer[col]).join("\t"))
+        .join("\n");
+
+      document.getElementById("dataOutput").value = tsvData;
+      results.classList.add("show");
+    }
+
+    function copyToClipboard() {
+      const textarea = document.getElementById("dataOutput");
+      textarea.select();
+      document.execCommand("copy");
+
+      const message = document.getElementById("copyMessage");
+      message.style.display = "inline";
+      setTimeout(() => (message.style.display = "none"), 4500);
+    }
+
+    function downloadCSV() {
+      const blob = new Blob([tsvData], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "swim_times.csv";
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+  </script>
 </body>
 </html>
