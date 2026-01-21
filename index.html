@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <title>Swim Times PDF Converter</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <!-- Using a specific versioned CDN to prevent source map warnings -->
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
 
   <style>
@@ -15,10 +14,8 @@
       --text: #0f172a;
       --muted: #64748b;
       --border: #e2e8f0;
-      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
       --blue: #2563eb;
-      --blue-hover: #1d4ed8;
-      --blue-light: #eff6ff;
       --radius: 16px;
     }
 
@@ -40,429 +37,119 @@
       box-shadow: var(--shadow);
       padding: 48px;
       width: 100%;
-      overflow: hidden; 
     }
 
-    @media (max-width: 640px) {
-      .container { padding: 24px; }
-      h1 { font-size: 28px; }
-    }
+    h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; color: #1e293b; }
+    .subtitle { color: var(--muted); margin-bottom: 32px; }
 
-    h1 {
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -0.025em;
-      margin-bottom: 8px;
-      color: #1e293b;
-    }
-    .subtitle {
-      color: var(--muted);
-      font-size: 17px;
-      margin-bottom: 32px;
-    }
-
-    .step {
-      display: flex;
-      gap: 24px;
-      padding: 32px 0;
-    }
-    .step + .step { border-top: 1px solid var(--border); }
+    .step { display: flex; gap: 24px; padding: 32px 0; border-top: 1px solid var(--border); }
+    .step:first-of-type { border-top: none; }
 
     .step-num {
       flex: 0 0 auto;
-      width: 44px; height: 44px;
+      width: 40px; height: 40px;
       border-radius: 12px;
       background: var(--blue);
       color: #fff;
       font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      display: flex; align-items: center; justify-content: center;
     }
 
-    .step-body { 
-      flex: 1; 
-      min-width: 0; 
-    }
-    
-    .step-title {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      color: #1e293b;
-    }
-    .step-desc {
-      color: var(--muted);
-      font-size: 15px;
-      margin-bottom: 16px;
-    }
+    .step-body { flex: 1; min-width: 0; }
+    .step-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
 
-    .datepicker-container {
-      position: relative;
-      width: 100%;
-      max-width: 280px;
-    }
     .datepicker-trigger {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      width: 100%;
-      padding: 12px 16px;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-weight: 600;
-      color: var(--text);
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      background: white; border: 1px solid var(--border); border-radius: 12px;
+      cursor: pointer; font-weight: 600;
     }
-    .datepicker-trigger:hover {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 4px var(--blue-light);
-    }
-    .datepicker-trigger i { color: var(--muted); }
 
     .calendar-card {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      width: 320px;
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      padding: 20px;
-      z-index: 100;
-      display: none;
-      animation: fadeIn 0.2s ease-out;
+      position: absolute; width: 320px; background: white; border: 1px solid var(--border);
+      border-radius: 16px; box-shadow: var(--shadow); padding: 20px; z-index: 100;
+      display: none; margin-top: 8px;
     }
     .calendar-card.active { display: block; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .calendar-header h4 {
-      font-weight: 700;
-      font-size: 16px;
-    }
-    .calendar-nav {
-      display: flex;
-      gap: 4px;
-    }
-    .calendar-nav-btn {
-      padding: 6px;
-      border-radius: 8px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      color: var(--muted);
-      transition: background 0.2s;
-    }
-    .calendar-nav-btn:hover { background: var(--bg); color: var(--blue); }
-
-    .calendar-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-      text-align: center;
-    }
-    .calendar-weekday {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      padding-bottom: 8px;
-    }
-    .calendar-day {
-      font-size: 14px;
-      padding: 10px 0;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-    }
-    .calendar-day:hover:not(.empty) { background: var(--blue-light); color: var(--blue); }
-    .calendar-day.selected { background: var(--blue) !important; color: white !important; font-weight: 700; }
-    .calendar-day.today { color: var(--blue); font-weight: 700; text-decoration: underline; }
-    .calendar-day.empty { cursor: default; }
-
-    .pathline { color: #334155; font-size: 15px; margin-bottom: 12px; }
-    .pathline b { font-weight: 800; }
-    .shot-wrap {
-      border-radius: 16px;
-      border: 1px solid var(--border);
-      overflow: hidden;
-      background: #fff;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-      max-width: 100%;
-      margin-bottom: 20px;
-    }
-    .shot-wrap img { display: block; width: 100%; height: auto; }
-
-    .accordion-btn {
-      border: 1px solid var(--border);
-      background: #f8fafc;
-      color: #0f172a;
-      border-radius: 12px;
-      padding: 12px 20px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 12px;
-      transition: all 0.2s;
-    }
-    .accordion-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    .accordion {
-      display: none;
-      margin-top: 16px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      background: #ffffff;
-    }
-    .accordion.show { display: block; }
-    .settings-list { padding-left: 20px; font-size: 14px; line-height: 1.8; color: #475569; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; margin-top: 10px; }
+    .calendar-day { padding: 8px 0; border-radius: 8px; cursor: pointer; font-size: 14px; }
+    .calendar-day.selected { background: var(--blue); color: white; }
 
     .upload-area {
-      border: 2px dashed var(--blue);
-      border-radius: 20px;
-      padding: 48px;
-      text-align: center;
-      background: var(--blue-light);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      width: 100%;
-    }
-    .upload-area:hover, .upload-area.dragover {
-      background: #e0f2fe;
-      transform: scale(1.005);
-    }
-    .upload-icon {
-      background: white;
-      width: 64px; height: 64px;
-      border-radius: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-      color: var(--blue);
+      border: 2px dashed var(--blue); border-radius: 20px; padding: 48px;
+      text-align: center; background: #eff6ff; cursor: pointer;
     }
 
-    .status {
-      margin-top: 24px;
-      padding: 16px;
-      border-radius: 12px;
-      display: none;
-      font-weight: 600;
-      max-width: 100%;
-    }
-    .status.success { display: block; background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
-    .status.error { display: block; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
-    .status.processing { display: block; background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+    .status { margin-top: 24px; padding: 16px; border-radius: 12px; display: none; font-weight: 600; }
+    .status.success { display: block; background: #f0fdf4; color: #166534; }
+    .status.error { display: block; background: #fef2f2; color: #991b1b; }
 
-    .results { display: none; margin-top: 32px; animation: fadeIn 0.4s ease-out; width: 100%; }
-    .results.show { display: block; }
+    textarea { width: 100%; height: 180px; border-radius: 12px; border: 1px solid var(--border); padding: 16px; font-family: monospace; font-size: 12px; background: #f8fafc; margin: 12px 0; }
 
-    textarea {
-      width: 100%;
-      height: 200px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      padding: 16px;
-      font-family: 'Inter', monospace;
-      font-size: 12px;
-      background: #f8fafc;
-      margin-top: 12px;
-      resize: vertical;
-      display: block;
-    }
-
-    .preview-table-container {
-      margin-top: 24px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow-x: auto; 
-      width: 100%;
-      background: #fff;
-      -webkit-overflow-scrolling: touch;
-    }
-    
-    .preview-table {
-      width: 100%;
-      min-width: 1200px; 
-      border-collapse: collapse;
-      font-size: 13px;
-      table-layout: auto;
-    }
-    .preview-table th {
-      background: #1e293b;
-      color: #fff;
-      padding: 12px 16px;
-      text-align: left;
-      font-weight: 600;
-      white-space: nowrap;
-      position: sticky;
-      top: 0;
-    }
-    .preview-table td {
-      padding: 12px 16px;
-      border-top: 1px solid var(--border);
-      white-space: nowrap;
-    }
+    .preview-table-container { margin-top: 24px; border: 1px solid var(--border); border-radius: 12px; overflow-x: auto; background: #fff; }
+    .preview-table { width: 100%; min-width: 1200px; border-collapse: collapse; font-size: 13px; }
+    .preview-table th { background: #1e293b; color: #fff; padding: 12px; text-align: left; }
+    .preview-table td { padding: 10px 12px; border-top: 1px solid var(--border); }
     .previous-time { color: #94a3b8; font-style: italic; }
 
-    .action-bar {
-      display: flex;
-      gap: 12px;
-      margin: 16px 0;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .button {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 24px;
-      font-weight: 700;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.2s;
-    }
+    .button { border: none; border-radius: 10px; padding: 12px 24px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
     .button.primary { background: #16a34a; color: #fff; }
-    .button.primary:hover { background: #15803d; }
     .button.secondary { background: #1e293b; color: #fff; }
-    .button.secondary:hover { background: #0f172a; }
-
-    #copyMessage {
-      color: #16a34a;
-      font-weight: 700;
-      font-size: 14px;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-      <div>
-        <h1>Swim Times PDF Converter</h1>
-        <p class="subtitle">Convert Team Manager swim times PDFs to Google Sheets format</p>
-      </div>
-    </div>
+    <h1>Swim Times PDF Converter</h1>
+    <p class="subtitle">Extracting Individual Top Times (V4.4 Professional Engine)</p>
 
-    <!-- STEP 1 -->
     <div class="step">
       <div class="step-num">1</div>
       <div class="step-body">
         <div class="step-title">Season Start Date</div>
-        <div class="step-desc">Only times recorded on or after this date will be added. Previous times are marked.</div>
-        
-        <div class="datepicker-container">
+        <div style="position: relative;">
           <button class="datepicker-trigger" id="dateTrigger">
-            <i data-lucide="calendar"></i>
-            <span id="dateDisplay">October 30, 2025</span>
+            <i data-lucide="calendar"></i> <span id="dateDisplay">October 30, 2025</span>
           </button>
-          
           <div class="calendar-card" id="calendarCard">
-            <div class="calendar-header">
-              <h4 id="monthYearDisplay">October 2025</h4>
-              <div class="calendar-nav">
-                <button class="calendar-nav-btn" id="prevMonth"><i data-lucide="chevron-left"></i></button>
-                <button class="calendar-nav-btn" id="nextMonth"><i data-lucide="chevron-right"></i></button>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h4 id="monthYear"></h4>
+              <div>
+                <button id="prevMonth" style="border:none;background:none;cursor:pointer;padding:5px;"><i data-lucide="chevron-left"></i></button>
+                <button id="nextMonth" style="border:none;background:none;cursor:pointer;padding:5px;"><i data-lucide="chevron-right"></i></button>
               </div>
             </div>
-            <div class="calendar-grid" id="calendarGrid">
-            </div>
+            <div class="calendar-grid" id="calendarGrid"></div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- STEP 2 -->
     <div class="step">
       <div class="step-num">2</div>
       <div class="step-body">
         <div class="step-title">Generate PDF in Team Manager</div>
-        <div class="step-desc pathline">
-          Open Team Manager → <b>Reports</b> → <b>Performance Reports</b> → <b>Top Times</b>
-        </div>
-        <div class="step-desc" style="color: #1e293b;"><b>Configure settings exactly as shown:</b></div>
-
-        <div class="shot-wrap">
-          <img src="https://i.imgur.com/25PNf2e.png" alt="Settings screenshot" />
-        </div>
-
-        <button class="accordion-btn" id="toggleSettings">
-          <i data-lucide="settings"></i> View Detailed Settings List
-        </button>
-
-        <div class="accordion" id="settingsPanel">
-          <ul class="settings-list">
-            <li><b>Gen:</b> All</li>
-            <li><b>Sort by:</b> Name</li>
-            <li><b>Splits:</b> None</li>
-            <li><b>Course Options:</b> YY (Convert to Y, Show Y)</li>
-            <li><b>Event Filters:</b> Individual (NOT Relay)</li>
-            <li><b>Top How Many?:</b> 1</li>
-            <li><b>Layout:</b> 1 Column</li>
-            <li><b>Use Times Since:</b> Enter your season start date and check the “Use Since Date” box</li>
-          </ul>
+        <div style="border-radius: 16px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px;">
+          <img src="https://i.imgur.com/25PNf2e.png" style="display: block; width: 100%; height: auto;" alt="Settings" />
         </div>
       </div>
     </div>
 
-    <!-- STEP 3 -->
     <div class="step">
       <div class="step-num">3</div>
       <div class="step-body">
-        <div class="step-title">Upload Your PDF</div>
-        <div class="step-desc">Select your Top Times report file to begin conversion.</div>
+        <div class="step-title">Upload PDF</div>
         <div class="upload-area" id="uploadArea">
-          <div class="upload-icon">
-            <i data-lucide="upload-cloud"></i>
-          </div>
-          <div style="font-weight: 800; font-size: 18px; margin-bottom: 4px;">Click or Drag PDF</div>
-          <div style="color: var(--muted); font-size: 14px;">Optimized for Hytek Team Manager Reports</div>
+          <i data-lucide="upload-cloud" style="width:48px;height:48px;color:var(--blue);margin-bottom:12px;"></i>
+          <div style="font-weight: 800; font-size: 18px;">Click to select file</div>
           <input type="file" id="fileInput" accept=".pdf" style="display: none;" />
         </div>
-
         <div class="status" id="status"></div>
-
-        <div class="results" id="results">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <h3 style="font-size:20px; font-weight:800;">Conversion Successful</h3>
+        <div class="results" id="results" style="display: none;">
+          <div style="display:flex; gap:10px; margin-bottom:10px;">
+            <button class="button primary" onclick="copyToClipboard()"><i data-lucide="copy"></i> Copy Data</button>
+            <button class="button secondary" onclick="downloadCSV()"><i data-lucide="download"></i> CSV</button>
           </div>
-          <p class="step-desc">Copy this data into your Google Sheet (starting at cell <b>A5</b>).</p>
-          
-          <div class="action-bar">
-            <button class="button primary" onclick="copyToClipboard()">
-              <i data-lucide="copy"></i> Copy for Sheet
-            </button>
-            <button class="button secondary" onclick="downloadCSV()">
-              <i data-lucide="download"></i> Download CSV
-            </button>
-            <span id="copyMessage" style="display:none;">
-              <i data-lucide="check-circle-2" style="width:16px; vertical-align:middle;"></i> Ready to paste!
-            </span>
-          </div>
-          
           <textarea id="dataOutput" readonly></textarea>
-
-          <div class="preview-table-container">
-            <div id="previewContainer"></div>
-          </div>
+          <div class="preview-table-container"><div id="previewContainer"></div></div>
         </div>
       </div>
     </div>
@@ -472,323 +159,173 @@
     lucide.createIcons();
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-    let selectedDate = new Date(2025, 9, 30); // Oct 30, 2025
-    let currentViewDate = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+    let selectedDate = new Date(2025, 9, 30);
+    let viewDate = new Date(selectedDate);
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const daysShort = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+    function renderCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+      document.getElementById('monthYear').textContent = `${months[viewDate.getMonth()]} ${viewDate.getFullYear()}`;
+      const first = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1).getDay();
+      const last = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
+      for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
+      for(let i=1; i<=last; i++) {
+        const d = document.createElement('div'); d.className = 'calendar-day'; d.textContent = i;
+        const cur = new Date(viewDate.getFullYear(), viewDate.getMonth(), i);
+        if(cur.toDateString() === selectedDate.toDateString()) d.classList.add('selected');
+        d.onclick = (e) => { e.stopPropagation(); selectedDate = cur; document.getElementById('dateDisplay').textContent = `${months[cur.getMonth()]} ${cur.getDate()}, ${cur.getFullYear()}`; document.getElementById('calendarCard').classList.remove('active'); renderCalendar(); };
+        grid.appendChild(d);
+      }
+    }
 
-    const dateTrigger = document.getElementById('dateTrigger');
-    const calendarCard = document.getElementById('calendarCard');
-    const dateDisplay = document.getElementById('dateDisplay');
-    const monthYearDisplay = document.getElementById('monthYearDisplay');
-    const calendarGrid = document.getElementById('calendarGrid');
-    const prevMonthBtn = document.getElementById('prevMonth');
-    const nextMonthBtn = document.getElementById('nextMonth');
+    document.getElementById('dateTrigger').onclick = (e) => { e.stopPropagation(); document.getElementById('calendarCard').classList.toggle('active'); renderCalendar(); };
+    document.getElementById('prevMonth').onclick = (e) => { e.stopPropagation(); viewDate.setMonth(viewDate.getMonth()-1); renderCalendar(); };
+    document.getElementById('nextMonth').onclick = (e) => { e.stopPropagation(); viewDate.setMonth(viewDate.getMonth()+1); renderCalendar(); };
+    window.onclick = () => document.getElementById('calendarCard').classList.remove('active');
 
     const uploadArea = document.getElementById("uploadArea");
     const fileInput = document.getElementById("fileInput");
-    const status = document.getElementById("status");
-    const results = document.getElementById("results");
-    const toggleSettings = document.getElementById("toggleSettings");
-    const settingsPanel = document.getElementById("settingsPanel");
-
-    function renderCalendar() {
-      calendarGrid.innerHTML = '';
-      daysShort.forEach(day => {
-        const d = document.createElement('div');
-        d.className = 'calendar-weekday';
-        d.textContent = day;
-        calendarGrid.appendChild(d);
-      });
-
-      monthYearDisplay.textContent = `${monthNames[currentViewDate.getMonth()]} ${currentViewDate.getFullYear()}`;
-      const firstDay = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth(), 1).getDay();
-      const daysInMonth = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth() + 1, 0).getDate();
-
-      for (let i = 0; i < firstDay; i++) {
-        const empty = document.createElement('div');
-        empty.className = 'calendar-day empty';
-        calendarGrid.appendChild(empty);
-      }
-
-      const today = new Date();
-      for (let i = 1; i <= daysInMonth; i++) {
-        const day = document.createElement('div');
-        day.className = 'calendar-day';
-        day.textContent = i;
-        const dateObj = new Date(currentViewDate.getFullYear(), currentViewDate.getMonth(), i);
-        if (dateObj.toDateString() === selectedDate.toDateString()) day.classList.add('selected');
-        if (dateObj.toDateString() === today.toDateString()) day.classList.add('today');
-        day.onclick = (e) => {
-          e.stopPropagation();
-          selectedDate = dateObj;
-          dateDisplay.textContent = `${monthNames[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
-          calendarCard.classList.remove('active');
-          renderCalendar();
-        };
-        calendarGrid.appendChild(day);
-      }
-    }
-
-    dateTrigger.onclick = (e) => {
-      e.stopPropagation();
-      calendarCard.classList.toggle('active');
-      renderCalendar();
-    };
-
-    prevMonthBtn.onclick = (e) => {
-      e.stopPropagation();
-      currentViewDate.setMonth(currentViewDate.getMonth() - 1);
-      renderCalendar();
-    };
-
-    nextMonthBtn.onclick = (e) => {
-      e.stopPropagation();
-      currentViewDate.setMonth(currentViewDate.getMonth() + 1);
-      renderCalendar();
-    };
-
-    document.onclick = (e) => {
-      if (!calendarCard.contains(e.target) && e.target !== dateTrigger) {
-        calendarCard.classList.remove('active');
-      }
-    };
-
-    toggleSettings.addEventListener("click", () => {
-      settingsPanel.classList.toggle("show");
-    });
-
-    uploadArea.addEventListener("click", () => fileInput.click());
-    uploadArea.addEventListener("dragover", (e) => { e.preventDefault(); uploadArea.classList.add("dragover"); });
-    uploadArea.addEventListener("dragleave", () => uploadArea.classList.remove("dragover"));
-    uploadArea.addEventListener("drop", (e) => {
-      e.preventDefault();
-      uploadArea.classList.remove("dragover");
-      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-    });
-
-    fileInput.addEventListener("change", (e) => { if (e.target.files.length) handleFile(e.target.files[0]); });
+    uploadArea.onclick = () => fileInput.click();
+    fileInput.onchange = (e) => { if (e.target.files.length) handleFile(e.target.files[0]); };
 
     function showStatus(msg, type) {
-      status.textContent = msg;
-      status.className = "status " + type;
+      const s = document.getElementById("status");
+      s.style.display = "block"; s.className = "status " + type; s.textContent = msg;
     }
 
     async function handleFile(file) {
-      showStatus("Parsing swim report data...", "processing");
-      results.classList.remove("show");
-
+      showStatus("Stitching fragmented PDF data...", "processing");
+      document.getElementById("results").style.display = "none";
       try {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        const buffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(buffer).promise;
         let allLines = [];
-
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
-          const textContent = await page.getTextContent();
+          const text = await page.getTextContent();
           const lineMap = {};
-          
-          textContent.items.forEach(item => {
+          text.items.forEach(item => {
             const y = Math.round(item.transform[5]);
             if (!lineMap[y]) lineMap[y] = [];
             lineMap[y].push(item);
           });
-
-          const sortedY = Object.keys(lineMap).sort((a, b) => b - a);
-          sortedY.forEach(y => {
-            const line = lineMap[y].sort((a, b) => a.transform[4] - b.transform[4]).map(item => item.str).join(" ");
-            if (line.trim()) allLines.push(line);
+          Object.keys(lineMap).sort((a,b) => b-a).forEach(y => {
+            const line = lineMap[y].sort((a,b) => a.transform[4] - b.transform[4]).map(it => it.str).join(" ").replace(/[",]/g, ' ').replace(/\s+/g, ' ').trim();
+            if (line) allLines.push(line);
           });
         }
-
-        const swimmers = extractSwimmerData(allLines);
-        if (swimmers.length === 0) {
-          showStatus("Error: No swimmers found. Please check PDF settings.", "error");
-        } else {
-          renderData(swimmers);
-          showStatus(`Successfully extracted ${swimmers.length} swimmers.`, "success");
-        }
-      } catch (err) {
-        showStatus("Critical Error: " + err.message, "error");
-      }
+        const data = extractSwimmers(allLines);
+        renderData(data);
+        showStatus(`Extracted ${data.length} swimmers. Audit complete.`, "success");
+      } catch (err) { showStatus("Parser Error: " + err.message, "error"); }
     }
 
-    function extractSwimmerData(allLines) {
-      const swimmerMap = new Map(); 
+    function extractSwimmers(lines) {
+      const swimmers = new Map();
       let currentSwimmer = null;
-      const seasonStart = selectedDate;
       
-      // Initial scan to find primary school code in brackets
-      let schoolCode = "";
-      for (let i = 0; i < Math.min(allLines.length, 30); i++) {
-        const match = allLines[i].match(/\[([A-Z0-9\-]{2,10})\]/);
-        if (match) {
-          schoolCode = match[1];
-          break;
-        }
-      }
+      const teamCodes = new Set();
+      lines.forEach(l => {
+        const m = l.match(/\[([A-Z0-9\-]{2,10})\]/);
+        if(m) teamCodes.add(m[1]);
+      });
 
-      const normalizeGender = (g) => {
-        if (!g) return '';
-        g = g.toUpperCase();
-        if (g === 'M' || g === 'B') return 'M';
-        if (g === 'F' || g === 'G' || g === 'W') return 'F';
-        return g;
-      };
+      const timeRegex = /(x?\d{0,2}\s*:?\s*\d{1,2}\s*\.\s*\d{2})/;
+      const dateRegex = /(\d{1,2}\/\d{1,2}\/\d{4})/;
 
-      for (let i = 0; i < allLines.length; i++) {
-        const line = allLines[i].trim();
-        const metadataMatch = line.match(/\((Yr:|Year:)?\s*([A-Z0-9]+)\)|\((\d+)\)|\b([BGMW])\b/gi);
-        const isTimeRow = /[:\.]/.test(line) && /\d{1,2}\/\d{1,2}\/\d{4}/.test(line);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const metadataFound = /\((Yr:|Year:)?\s*[A-Z0-9]+\)|\((\d+)\)|\b([BGMW])\b/gi.test(line);
+        const hasTime = timeRegex.test(line);
+        const hasDate = dateRegex.test(line);
 
-        if (metadataMatch && metadataMatch.length >= 1 && !isTimeRow) {
-          // CLEANING LOGIC: Remove Metadata and School Codes
-          let name = line
-            .replace(/\((Yr:|Year:)?\s*([A-Z0-9]+)\)/gi, '') 
-            .replace(/\(\d+\)/g, '')                         
-            .replace(/\b[BGMW]\b/g, '')                      
-            .replace(/\[[A-Z0-9\-]+\]/g, '')                 
-            .replace(/\s+/g, ' ')                            
-            .trim();
-          
-          // Remove the detected school code
-          if (schoolCode) {
-              const codeRegex = new RegExp(`\\b${schoolCode}\\b`, 'gi');
-              name = name.replace(codeRegex, '').trim();
-          }
-          
-          // AGGRESSIVE SCHOOL STRIP: Clean uppercase trailing school codes (3-6 chars)
-          // Also cleans up any leftover school tokens that weren't in brackets but are separated by space
-          name = name.replace(/\b[A-Z]{3,7}\b$/, '').trim();
-          
-          // Clean up course/lead-off markers that bleed into the name string
-          name = name.replace(/\b(Y|SCY|L|S)\b$/i, '').trim();
-
-          if (name.length < 3 && i + 1 < allLines.length) {
-            const nextLineStr = allLines[i+1].trim();
-            if (!/[:\.\d]/.test(nextLineStr)) name = nextLineStr;
-          }
+        // Header Logic: Always check for header info independently
+        if (metadataFound) {
+          let name = line.replace(/\(.*\)/g, '').replace(/\b[BGMW]\b/g, '').replace(/\[.*\]/g, '').replace(/\s+/g, ' ').trim();
+          // Remove any words matching team codes
+          teamCodes.forEach(code => name = name.replace(new RegExp(`\\b${code}\\b`, 'gi'), '').trim());
+          // Remove trailing school clusters (3-8 uppercase chars)
+          name = name.replace(/\s+[A-Z0-9\-]{3,8}$/, '').replace(/\b(Y|SCY|L|S)\b$/i, '').trim();
+          // Remove any text that looks like a time to prevent accidental pairing in name column
+          name = name.replace(timeRegex, '').replace(dateRegex, '').trim();
 
           if (name.length > 2) {
-            if (swimmerMap.has(name)) {
-              currentSwimmer = swimmerMap.get(name);
-            } else {
-              let gender = "";
-              const genderFind = line.match(/\b([BGMW])\b/i);
-              if (genderFind) gender = normalizeGender(genderFind[1]);
-              
-              currentSwimmer = {
-                "Name": name, "Gender": gender || "F",
-                "200 FREE": "NT", "200 IM": "NT", "50 FREE": "NT", "100 FLY": "NT",
-                "100 FREE": "NT", "500 FREE": "NT", "100 BACK": "NT", "100 BREAST": "NT"
-              };
-              swimmerMap.set(name, currentSwimmer);
+            if (!swimmers.has(name)) {
+              let g = (line.match(/\b([BGMW])\b/i) || ["","F"])[1].toUpperCase();
+              g = (g === 'M' || g === 'B') ? 'M' : 'F';
+              swimmers.set(name, { Name: name, Gender: g, "200 FREE": "NT", "200 IM": "NT", "50 FREE": "NT", "100 FLY": "NT", "100 FREE": "NT", "500 FREE": "NT", "100 BACK": "NT", "100 BREAST": "NT" });
             }
+            currentSwimmer = swimmers.get(name);
           }
-        } else if (currentSwimmer && isTimeRow) {
-          const timeMatch = line.match(/(\d{0,2}:?\d{1,2}\.\d{2})/);
-          const dateMatch = line.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-          const distMatch = line.match(/\b(50|100|200|500)\b/);
+        } 
+        
+        // Time Logic: Process line if we have a time, regardless of header status
+        if (currentSwimmer && hasTime) {
+          // Lookahead buffer to pair Distance/Event/Date
+          let context = (line + " " + (lines[i+1] || "") + " " + (lines[i+2] || "") + " " + (lines[i+3] || "")).replace(/\s+/g, ' ');
+          
+          const timeMatch = line.match(timeRegex);
+          const dateMatch = context.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+          // STRICT EVENT MATCHING: Distance MUST be followed by Event Name to ignore NISCA points
+          const eventMatch = context.match(/\b(50|100|200|500)\b\s*(Free|Back|Breast|Fly|Butterfly|IM|Medley|I\.M\.)/i);
 
-          if (timeMatch && dateMatch && distMatch) {
-            const rawTime = timeMatch[1];
-            const meetDate = new Date(dateMatch[1]);
-            const distance = distMatch[1];
-            const eventName = line.toLowerCase();
-            
-            let key = "";
-            // STRICT EVENT FILTERING: Only count specified events/distances
-            if (eventName.includes("free")) {
-                if (["50", "100", "200", "500"].includes(distance)) {
-                    key = distance + " FREE";
-                }
-            } else if (eventName.includes("back") && distance === "100") {
-                key = "100 BACK";
-            } else if (eventName.includes("breast") && distance === "100") {
-                key = "100 BREAST";
-            } else if (eventName.includes("fly") && distance === "100") {
-                key = "100 FLY";
-            } else if ((eventName.includes("im") || eventName.includes("medley")) && distance === "200") {
-                key = "200 IM";
+          if (timeMatch && dateMatch && eventMatch) {
+            let rawTime = timeMatch[1].replace(/[\s]/g, '').replace(/^x/, '');
+            if(!rawTime.includes(':') && rawTime.includes('.')) {
+                let p = rawTime.split('.');
+                rawTime = p[0].padStart(2, '0') + '.' + p[1];
             }
 
-            // Only record if it's one of the primary 8 events
-            if (key && currentSwimmer.hasOwnProperty(key)) {
-              const formatted = formatTime(rawTime);
-              const isSeason = meetDate >= seasonStart;
-              
-              if (isSeason) {
-                if (currentSwimmer[key] === "NT" || currentSwimmer[key] === "Previous") {
-                  currentSwimmer[key] = formatted;
-                } else if (toSec(formatted) < toSec(currentSwimmer[key])) {
-                  currentSwimmer[key] = formatted;
+            const meetDate = new Date(dateMatch[1]);
+            const dist = eventMatch[1];
+            const type = eventMatch[2].toLowerCase();
+            let eventKey = "";
+
+            if (type.includes("free")) { if (["50","100","200","500"].includes(dist)) eventKey = dist + " FREE"; }
+            else if (type.includes("back") && dist === "100") eventKey = "100 BACK";
+            else if (type.includes("breast") && dist === "100") eventKey = "100 BREAST";
+            else if ((type.includes("fly") || type.includes("butterfly")) && dist === "100") eventKey = "100 FLY";
+            else if ((type.includes("im") || type.includes("medley") || type.includes("i.m")) && dist === "200") eventKey = "200 IM";
+
+            if (eventKey) {
+              if (meetDate >= selectedDate) {
+                if (currentSwimmer[eventKey] === "NT" || currentSwimmer[eventKey] === "Previous" || toSec(rawTime) < toSec(currentSwimmer[eventKey])) {
+                  currentSwimmer[eventKey] = rawTime;
                 }
-              } else if (currentSwimmer[key] === "NT") {
-                currentSwimmer[key] = "Previous";
+              } else if (currentSwimmer[eventKey] === "NT") {
+                currentSwimmer[eventKey] = "Previous";
               }
             }
           }
         }
       }
-      return Array.from(swimmerMap.values());
-    }
-
-    function formatTime(t) {
-      if (!t.includes(":")) {
-        const parts = t.split(".");
-        if (parts.length === 2) {
-            return parts[0].padStart(2, "0") + "." + parts[1];
-        }
-      }
-      return t;
+      return Array.from(swimmers.values());
     }
 
     function toSec(t) {
       if (t === "NT" || t === "Previous") return 999999;
-      if (t.includes(":")) {
-        const p = t.split(":");
-        return parseFloat(p[0]) * 60 + parseFloat(p[1]);
-      }
+      if (t.includes(":")) { const p = t.split(":"); return parseFloat(p[0])*60 + parseFloat(p[1]); }
       return parseFloat(t);
     }
 
     function renderData(swimmers) {
       const cols = ["Name", "Gender", "200 FREE", "200 IM", "50 FREE", "100 FLY", "100 FREE", "500 FREE", "100 BACK", "100 BREAST"];
-      
-      const tsv = swimmers.map(s => [
-        s.Name, s.Gender, s["200 FREE"], s["200 IM"], s["50 FREE"], 
-        s["100 FLY"], s["100 FREE"], s["500 FREE"], s["100 BACK"], s["100 BREAST"]
-      ].join("\t")).join("\n");
-      document.getElementById("dataOutput").value = tsv;
-
-      let html = `<table class="preview-table"><thead><tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>`;
+      document.getElementById("dataOutput").value = swimmers.map(s => cols.map(c => s[c]).join("\t")).join("\n");
+      let h = `<table class="preview-table"><thead><tr>${cols.map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>`;
       swimmers.forEach(s => {
-        html += `<tr><td>${s.Name}</td><td>${s.Gender}</td>${cols.slice(2).map(c => `<td class="${s[c] === 'Previous' ? 'previous-time' : ''}">${s[c]}</td>`).join("")}</tr>`;
+        h += `<tr><td>${s.Name}</td><td>${s.Gender}</td>${cols.slice(2).map(c => `<td class="${s[c]==='Previous'?'previous-time':''}">${s[c]}</td>`).join("")}</tr>`;
       });
-      html += "</tbody></table>";
-      document.getElementById("previewContainer").innerHTML = html;
-      results.classList.add("show");
+      document.getElementById("previewContainer").innerHTML = h + "</tbody></table>";
+      document.getElementById("results").style.display = "block";
       lucide.createIcons();
     }
 
-    function copyToClipboard() {
-      const ta = document.getElementById("dataOutput");
-      ta.select();
-      document.execCommand('copy');
-      const msg = document.getElementById("copyMessage");
-      msg.style.display = "inline-flex";
-      setTimeout(() => msg.style.display = "none", 4000);
-    }
-
-    function downloadCSV() {
-      const tsv = document.getElementById("dataOutput").value;
-      const csv = tsv.replace(/\t/g, ",");
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const a = document.createElement("a");
-      a.href = window.URL.createObjectURL(blob);
-      a.download = `swim_times_${new Date().toISOString().split('T')[0]}.csv`;
-      a.click();
+    function copyToClipboard() { const ta = document.getElementById("dataOutput"); ta.select(); document.execCommand('copy'); }
+    function downloadCSV() { 
+      const csv = document.getElementById("dataOutput").value.replace(/\t/g, ",");
+      const a = document.createElement("a"); a.href = window.URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+      a.download = `swim_times.csv`; a.click();
     }
     renderCalendar();
   </script>
